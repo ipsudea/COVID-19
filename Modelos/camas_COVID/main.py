@@ -147,55 +147,55 @@ cum_census = pd.DataFrame(columns = column_names)
 
 
 
-scenario1 = Scenario(name = "Scenario1",
-                    S = 4119405,
-                    market_share = 15,
-                    initial_infections = 91,
-                    n_days = 60,
-                    current_hosp = 4,
-                    doubling_time = 6,
-                    relative_contact_rate = 0,
+scenario1 = Scenario(name = "Escenario 1 - Medidas de aislamiento efectivas en 30%",
+                    S = 2713542,
+                    market_share = 100,
+                    initial_infections = 52,
+                    n_days = 365,
+                    current_hosp = 5,
+                    doubling_time = 4,
+                    relative_contact_rate = 30,
                     recovery_days = 14.0,
-                    hosp_rate = 5,
-                    icu_rate = 2,
-                    vent_rate = 1,
-                    hosp_los = 7,
-                    icu_los = 9,
-                    vent_los = 10,
+                    hosp_rate = 2.5,
+                    icu_rate = 0.75,
+                    vent_rate = 0.65,
+                    hosp_los = 10,
+                    icu_los = 14,
+                    vent_los = 14,
                     )
 
-scenario2 = Scenario(name = "Scenario1",
-                    S = 4119405,
-                    market_share = 15,
-                    initial_infections = 91,
-                    n_days = 60,
-                    current_hosp = 4,
-                    doubling_time = 6,
-                    relative_contact_rate = 25,
+scenario2 = Scenario(name = "Escenario 2 - Medidas de aislamiento efectivas en 45%",
+                    S = 2713542,
+                    market_share = 100,
+                    initial_infections = 52,
+                    n_days = 365,
+                    current_hosp = 5,
+                    doubling_time = 4,
+                    relative_contact_rate = 45,
                     recovery_days = 14.0,
-                    hosp_rate = 5,
-                    icu_rate = 2,
-                    vent_rate = 1,
-                    hosp_los = 7,
-                    icu_los = 9,
-                    vent_los = 10,
+                    hosp_rate = 2.5,
+                    icu_rate = 0.75,
+                    vent_rate = 0.65,
+                    hosp_los = 10,
+                    icu_los = 14,
+                    vent_los = 14,
                     )
 
-scenario3 = Scenario(name = "Scenario1",
-                    S = 4119405,
-                    market_share = 15,
-                    initial_infections = 91,
-                    n_days = 60,
-                    current_hosp = 4,
-                    doubling_time = 6,
-                    relative_contact_rate = 50,
+scenario3 = Scenario(name = "Escenario 3 - Medidas de aislamiento efectivas en 60%",
+                    S = 2713542,
+                    market_share = 100,
+                    initial_infections = 52,
+                    n_days = 365,
+                    current_hosp = 5,
+                    doubling_time = 4,
+                    relative_contact_rate = 60,
                     recovery_days = 14.0,
-                    hosp_rate = 5,
-                    icu_rate = 2,
-                    vent_rate = 1,
-                    hosp_los = 7,
-                    icu_los = 9,
-                    vent_los = 10,
+                    hosp_rate = 2.5,
+                    icu_rate = 0.75,
+                    vent_rate = 0.65,
+                    hosp_los = 10,
+                    icu_los = 14,
+                    vent_los = 14,
                     )
 
 list_scenarios = [scenario1, scenario2, scenario3]
@@ -359,7 +359,7 @@ st.dataframe(copy_merged)
 
 
 # Analysis of number of hospitalized individuals
-st.subheader("Número de personas hospitalizadas en los distintos escenarios")
+st.subheader("Número acumulado de pacientes hospitalizados")
 
 # Create the arrays of observations for each scenario
 cum_census = (cum_census.iloc[:, :]).apply(np.floor)
@@ -387,7 +387,7 @@ st.dataframe(copy_merged)
 
 
 # Analysis of number of individuals in ICU
-st.subheader("Número de pacientes en UCI en los diferentes escenarios")
+st.subheader("Número acumulado de pacientes en UCE/UCI sin ventilación mecánica")
 
 # Create the arrays of observations for each scenario
 cum_census = (cum_census.iloc[:, :]).apply(np.floor)
@@ -415,7 +415,7 @@ st.dataframe(copy_merged)
 
 
 # Analysis of number of individuals in Vent
-st.subheader("Número de pacientes con ventilación mécanica en los diferentes escenarios")
+st.subheader("Número acumulado de pacientes en UCI con ventilación mécanica")
 
 # Create the arrays of observations for each scenario
 cum_census = (cum_census.iloc[:, :]).apply(np.floor)
