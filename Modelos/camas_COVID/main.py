@@ -87,20 +87,25 @@ def comparing_chart(s1: np.ndarray, s2: np.ndarray) -> alt.Chart:
     )
 
 # Graph comparing measure in three scenarios
-def comparing_chart3(s1: np.ndarray, s2: np.ndarray, s3: np.ndarray) -> alt.Chart:
+def comparing_chart3(s1: np.ndarray, s2: np.ndarray, s3: np.ndarray) -> alt.layer:
     dat = pd.DataFrame({"Scenario1": s1, "Scenario2": s2, "Scenario3": s3})
 
-    return (
-        alt
-        .Chart(dat.reset_index())
-        .transform_fold(fold=["Scenario1", "Scenario2", "Scenario3"])
-        .mark_line()
-        .encode(
-            x=alt.X("index", title="Days from today"),
-            y=alt.Y("value:Q", title="Case Volume"),
-            tooltip=["key:N", "value:Q"],
-            color="key:N"
+    base = alt.Chart(dat.reset_index()).transform_fold(fold=["Scenario1", "Scenario2", "Scenario3"]).encode(
+        x=alt.X("index", title="Días desde hoy"),
+        y=alt.Y("value:Q", title="Total de pacientes"),
+        tooltip=["key:N", "value:Q"],
+        color="key:N",
+        text=alt.Text('max(daily):Q')
         )
+    text = alt.Chart(dat.reset_index()).transform_fold(fold=["Scenario1", "Scenario2", "Scenario3"]).encode(
+        x=alt.X("index", aggregate={'argmax': 'value'}),
+        y=alt.Y('max(value):Q'),
+        color="key:N",
+        text=alt.Text('max(value):Q')
+    )
+    return (
+        alt.layer(base.mark_line(),
+                  text.mark_text(dy=-10))
         .interactive()
     )
 
@@ -334,7 +339,7 @@ st.dataframe(scn_df)
 # Analysis of number of infected individuals
 st.subheader("Número de personas infectadas en los distintos escenarios")
 
-# Create the arrays of observations for ach scenario
+# Create the arrays of observations for each scenario
 i_s1 = cum_sir_raw.loc[cum_sir_raw["Scenario_id"] == 1][['day', 'infections']]
 i_s1.rename(columns = {'infections':'infectionsS1'}, inplace = True)
 i_s2 = cum_sir_raw.loc[cum_sir_raw["Scenario_id"] == 2][['day', 'infections']]
