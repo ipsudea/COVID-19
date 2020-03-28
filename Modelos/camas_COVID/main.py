@@ -105,7 +105,7 @@ def comparing_chart3(s1: np.ndarray, s2: np.ndarray, s3: np.ndarray) -> alt.laye
     )
     return (
         alt.layer(base.mark_line(),
-                  text.mark_text(dy=-10))
+                  text.mark_text(dy=-10, fontSize=16))
         .interactive()
     )
 
@@ -153,11 +153,11 @@ cum_census = pd.DataFrame(columns = column_names)
 
 
 scenario1 = Scenario(name = "Escenario 1 - Medidas de aislamiento efectivas en 30%",
-                    S = 2713542,
+                    S = 683832,
                     market_share = 100,
                     initial_infections = 52,
                     n_days = 365,
-                    current_hosp = 5,
+                    current_hosp = 2,
                     doubling_time = 4,
                     relative_contact_rate = 30,
                     recovery_days = 14.0,
@@ -170,11 +170,11 @@ scenario1 = Scenario(name = "Escenario 1 - Medidas de aislamiento efectivas en 3
                     )
 
 scenario2 = Scenario(name = "Escenario 2 - Medidas de aislamiento efectivas en 45%",
-                    S = 2713542,
+                    S = 683832,
                     market_share = 100,
                     initial_infections = 52,
                     n_days = 365,
-                    current_hosp = 5,
+                    current_hosp = 2,
                     doubling_time = 4,
                     relative_contact_rate = 45,
                     recovery_days = 14.0,
@@ -187,11 +187,11 @@ scenario2 = Scenario(name = "Escenario 2 - Medidas de aislamiento efectivas en 4
                     )
 
 scenario3 = Scenario(name = "Escenario 3 - Medidas de aislamiento efectivas en 60%",
-                    S = 2713542,
+                    S = 683832,
                     market_share = 100,
                     initial_infections = 52,
                     n_days = 365,
-                    current_hosp = 5,
+                    current_hosp = 2,
                     doubling_time = 4,
                     relative_contact_rate = 60,
                     recovery_days = 14.0,
@@ -300,7 +300,7 @@ for scn in list_scenarios:
     projection_admits['Scenario_id'] = scn.id
     cum_projection_admits = pd.concat([cum_projection_admits, projection_admits], ignore_index=True, sort=False)
 
-    # Census of patiemnts along the time horizon
+    # Census of patients along the time horizon
     census_table = _census_table(projection_admits, hosp_los, icu_los, vent_los)
     census_table['Scenario_id'] = scn.id
     cum_census = pd.concat([cum_census, census_table], ignore_index=True, sort=False)
