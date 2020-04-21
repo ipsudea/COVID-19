@@ -1,0 +1,214 @@
+---
+title: "COVID-19"
+author: "Daniel"
+date: "25/3/2020"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+library(tidyverse)
+library(lubridate)
+library(gganimate)
+library(RSocrata)
+library(grid)
+library(gghighlight)
+library(ggforce)
+library(plotly)
+library(ggpmisc)
+library(readxl)
+library(zoo)
+theme_set(theme_bw())
+```
+
+## Data reading and manipulation
+
+```{r}
+raw_data <- read.socrata("https://www.datos.gov.co/resource/gt2j-8ykr.csv") %>% 
+  as_tibble()
+
+antioquia_model <- read_csv("Fuentes/model_data.csv")
+
+covid <- raw_data %>% 
+  mutate(fecha_diagnostico = as_date(fecha_diagnostico))
+
+
+cumulative <- covid %>%
+  group_by(fecha_diagnostico, departamento) %>%
+  summarize(n = n()) %>%
+  group_by(departamento) %>% 
+  mutate(acum = cumsum(n)) %>% 
+  ungroup()
+```
+
+## National cases
+
+```{r}
+national_cases <- cumulative %>%
+  filter(departamento %in% c("Antioquia", "Cundinamarca", "Cartagena D.T. y C.", "Valle del Cauca", "Bogotá D.C.")) %>% 
+  ggplot(aes(x = fecha_diagnostico, y = acum, color = departamento)) +
+  geom_line(size = 1) +
+  geom_point(size = 2) +
+  geom_vline(xintercept = as.numeric(ymd("2020-03-24")), linetype = 4, color = "black") +
+  scale_x_date(date_breaks = "5 days", date_labels = "%d %b") +
+  scale_y_continuous(breaks = seq(from = 0, to = 1200, by = 200)) +
+  theme(legend.position = "bottom",
+        legend.spacing.x = unit(1, "cm"),
+        axis.text.x = element_text(angle = 20, size = 14),
+        axis.text.y = element_text(size = 14),
+        title = element_text(size = 16, face = "bold", family = "sans"),
+        legend.text = element_text(size = 12, margin = margin(r = 30, unit = "pt")),
+        plot.title = element_text(hjust = 0.5)) +
+  #gghighlight(departamento == "ANTIOQUIA") +
+  labs(title = "COVID-19: Evolución de casos acumulados por departamento",
+       subtitle = "Fuente: Instituto Nacional de Salud (15/04/2020)",
+       x = NULL,
+       y = NULL,
+       color = NULL)
+
+# Animation
+dpts_anim <- national_cases +
+  transition_reveal(fecha_diagnostico)
+gganimate::animate(dpts_anim, height = 1000, width = 1600)
+gganimate::anim_save("dpts_animation.gif")
+
+# Highlight
+dpts_high <- national_cases +
+  gghighlight(departamento == "Antioquia")
+ggsave(plot = dpts_high, "dpts_highlight_20-04-2020.png")  
+#Static
+ggsave(plot = national_cases, "dpts_20-04-2020.png")
+```
+
+
+## Model performance
+
+```{r}
+antioquia <- cumulative %>% 
+  filter(departamento == "Antioquia",
+         acum > 200)
+
+colors <- c("acum" = "black", "infectionsS1" = "darkblue", "infectionsS2" ="darkorange", "infectionsS3" = "darkred", "n" = "grey")
+
+tidy_antioquia <- antioquia_model %>%
+  mutate(fecha_diagnostico = seq.Date(from = ymd("2020-04-07"), to = ymd("2021-04-07"), by = 1)) %>% 
+  left_join(antioquia, by = "fecha_diagnostico") %>% 
+  pivot_longer(cols = c("infectionsS1", "infectionsS2", "infectionsS3", "n", "acum"))
+
+models_plot <- tidy_antioquia %>%
+  filter(name != "n") %>% 
+  ggplot(aes(fecha_diagnostico, value, color = name)) +
+  geom_line() +
+  geom_point() +
+  scale_color_manual(values = colors, labels = c("Casos confirmados", 
+                                                 "Escenario pesimista (30%)", 
+                                                 "Escenario intermedio (45%)",
+                                                 "Escenario optimista (60%)")) +
+  facet_zoom(xlim = c(ymd("2020-04-01"), ymd("2020-04-30")),
+             ylim = c(0, 500), zoom.size = 1.2) +
+  theme(axis.text.y = element_text(size = 14),
+        title = element_text(size = 16, face = "bold", family = "sans"),
+        legend.position = "bottom",
+        legend.text = element_text(margin = margin(r = 40, unit = "pt")),
+        plot.title = element_text(hjust = 0.5)
+        ) +
+  labs(title = "COVID-19: Antioquia - Modelo SIR - Población susceptible: 6.355.502",
+       subtitle = "Fuente casos confirmados: Instituto Nacional de Salud (20/04/2020)",
+       x = NULL,
+       y = NULL,
+       color = NULL) 
+
+# Animation
+antioquia_anim <- models_plot +
+  transition_reveal(fecha_diagnostico)
+gganimate::animate(antioquia_anim, height = 800, width = 1600)
+gganimate::anim_save("models_plot.gif")
+
+
+#Static
+ggsave(plot = models_plot, "model_comparison_20-04-2020.png")
+```
+
+## Example of why time series should not be used
+
+```{r}
+library(tsibble)
+library(fable)
+ts_data <- cumulative %>% 
+  group_by(fecha_diagnostico) %>% 
+  summarize(acumulado = sum(acum)) %>%
+  as_tsibble() %>%
+  tsibble::fill_gaps() %>%
+  mutate(acumulado = zoo::na.locf(acumulado, fromLast = TRUE)) 
+
+ts_data %>% 
+  model(ets = fable::ETS(acumulado),
+        arima = ARIMA(acumulado),
+        linear = fable::TSLM(acumulado ~trend() + season())) %>% 
+  forecast(h = "15 days") %>% 
+  autoplot(filter(ts_data,  fecha_diagnostico > ymd("2020-03-01")), level = NULL)
+  
+```
+
+## Local data from the clinic
+
+
+```{r}
+raw_ips <- read_excel("Fuentes/RESULTADOS PACIENTES COVID AL 17 de Abril 2020.xlsx")
+hosp_data <- read_csv("Fuentes/hosp_data.csv")
+uce_data <- read_csv("Fuentes/uce_data.csv")
+uci_data <- read_csv("Fuentes/uci_data.csv")
+
+ips <- raw_ips %>%
+  filter(Resultado...57 == "Positivo") %>% 
+  mutate(`Fecha consulta` = as_date(`Fecha consulta`)) %>% 
+  group_by(`Fecha consulta`, ERP) %>%
+  count() %>%
+  ungroup()
+
+hosp_mixed <- hosp_data %>%
+  mutate(date = seq.Date(from = ymd("2020-03-25"), to = ymd("2021-03-11"), by = 1)) %>% 
+  left_join(ips, by = c("date" = "Fecha consulta")) %>%
+  mutate(n = replace_na(n,0),
+         acum = cumsum(n)) %>% 
+  mutate(n = case_when(date > Sys.Date() ~ NA_real_,
+                       TRUE ~ n),
+         acum = case_when(date > Sys.Date() ~ NA_real_,
+                          TRUE ~ acum))
+
+tidy_hosp <- hosp_mixed %>% 
+  pivot_longer(cols = c("hospS1", "hospS2", "hospS3", "acum"))
+
+
+hosp_colors <- c("acum" = "black", "hospS1" = "darkblue", "hospS2" ="darkorange", "hospS3" = "darkred")
+
+tidy_hosp %>%
+  ggplot(aes(date, value, color = name)) +
+  geom_line() +
+  geom_point() +
+  scale_color_manual(values = hosp_colors, labels = c("Casos confirmados", 
+                                                 "Escenario pesimista (30%)", 
+                                                 "Escenario intermedio (45%)",
+                                                 "Escenario optimista (60%)")) +
+  facet_zoom(xlim = c(ymd("2020-04-13"), ymd("2020-04-25")),
+             ylim = c(0, 500), zoom.size = 1.2) +
+  theme(axis.text.y = element_text(size = 14),
+        title = element_text(size = 16, face = "bold", family = "sans"),
+        legend.position = "bottom",
+        legend.text = element_text(margin = margin(r = 40, unit = "pt")),
+        plot.title = element_text(hjust = 0.5)
+        ) +
+  labs(title = "COVID-19: Población hospitalizada - EPS priorizadas - Modelo SIR - Población susceptible: 1.986.560",
+       subtitle = "Fuente casos confirmados: Puesto de mando unificado - IPS Universitaria (20/04/2020)",
+       x = NULL,
+       y = NULL,
+       color = NULL) 
+```
+
+

@@ -153,8 +153,8 @@ cum_census = pd.DataFrame(columns = column_names)
 
 
 scenario1 = Scenario(name = "Escenario 1 - Medidas de aislamiento efectivas en 30%",
-                    S = 683832,
-                    market_share = 100,
+                    S = 1986560,
+                    market_share = 80,
                     initial_infections = 52,
                     n_days = 365,
                     current_hosp = 2,
@@ -170,8 +170,8 @@ scenario1 = Scenario(name = "Escenario 1 - Medidas de aislamiento efectivas en 3
                     )
 
 scenario2 = Scenario(name = "Escenario 2 - Medidas de aislamiento efectivas en 45%",
-                    S = 683832,
-                    market_share = 100,
+                    S = 1986560,
+                    market_share = 80,
                     initial_infections = 52,
                     n_days = 365,
                     current_hosp = 2,
@@ -187,8 +187,8 @@ scenario2 = Scenario(name = "Escenario 2 - Medidas de aislamiento efectivas en 4
                     )
 
 scenario3 = Scenario(name = "Escenario 3 - Medidas de aislamiento efectivas en 60%",
-                    S = 683832,
-                    market_share = 100,
+                    S = 1986560,
+                    market_share = 80,
                     initial_infections = 52,
                     n_days = 365,
                     current_hosp = 2,
@@ -361,6 +361,7 @@ s3 = merged['infectionsS3']
 st.altair_chart(comparing_chartn(s1, s2, s3), use_container_width=True)
 # Print the dataframe in which the graph is based
 st.dataframe(copy_merged)
+copy_merged.to_csv(r'model_data.csv', index = False)
 
 
 # Analysis of number of hospitalized individuals
@@ -389,6 +390,7 @@ s3 = merged['hospS3']
 st.altair_chart(comparing_chart3(s1, s2, s3), use_container_width=True)
 # Print the dataframe in which the graph is based
 st.dataframe(copy_merged)
+copy_merged.to_csv(r'hosp_data.csv', index = False)
 
 
 # Analysis of number of individuals in ICU
@@ -417,6 +419,7 @@ s3 = merged['icuS3']
 st.altair_chart(comparing_chart3(s1, s2, s3), use_container_width=True)
 # Print the dataframe in which the graph is based
 st.dataframe(copy_merged)
+copy_merged.to_csv(r'uce_data.csv', index = False)
 
 
 # Analysis of number of individuals in Vent
@@ -445,3 +448,4 @@ s3 = merged['ventS3']
 st.altair_chart(comparing_chart3(s1, s2, s3), use_container_width=True)
 # Print the dataframe in which the graph is based
 st.dataframe(copy_merged)
+copy_merged.to_csv(r'uci_data.csv', index = False)
