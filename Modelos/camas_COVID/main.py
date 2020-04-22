@@ -68,51 +68,9 @@ def _census_table(projection_admits, hosp_los, icu_los, vent_los) -> pd.DataFram
 
     return census_table
 
-# Graph comparing measure in three scenarios
-def comparing_chart(s1: np.ndarray, s2: np.ndarray) -> alt.Chart:
-    dat = pd.DataFrame({"Scenario1": s1, "Scenario2": s2})
-
-    return (
-        alt
-        .Chart(dat.reset_index())
-        .transform_fold(fold=["Scenario1", "Scenario2"])
-        .mark_line()
-        .encode(
-            x=alt.X("index", title="Days from today"),
-            y=alt.Y("value:Q", title="Case Volume"),
-            tooltip=["key:N", "value:Q"],
-            color="key:N"
-        )
-        .interactive()
-    )
-
-# Graph comparing measure in three scenarios
-def comparing_chart3(s1: np.ndarray, s2: np.ndarray, s3: np.ndarray) -> alt.layer:
-    dat = pd.DataFrame({"Scenario1": s1, "Scenario2": s2, "Scenario3": s3})
-
-    base = alt.Chart(dat.reset_index()).transform_fold(fold=["Scenario1", "Scenario2", "Scenario3"]).encode(
-        x=alt.X("index", title="Días desde hoy"),
-        y=alt.Y("value:Q", title="Total de pacientes"),
-        tooltip=["key:N", "value:Q"],
-        color="key:N",
-        text=alt.Text('max(daily):Q')
-        )
-    text = alt.Chart(dat.reset_index()).transform_fold(fold=["Scenario1", "Scenario2", "Scenario3"]).encode(
-        x=alt.X("index", aggregate={'argmax': 'value'}),
-        y=alt.Y('max(value):Q'),
-        color="key:N",
-        text=alt.Text('max(value):Q')
-    )
-    return (
-        alt.layer(base.mark_line(),
-                  text.mark_text(dy=-10, fontSize=16))
-        .interactive()
-    )
-
-
 # Graph comparing measure in n  scenarios
 # series represent a variable number of np.ndarrays
-def comparing_chartn(*series) -> alt.Chart:
+def comparing_chartn(*series) -> alt.layer:
     series_dict = {}
     names = []
 
@@ -124,20 +82,25 @@ def comparing_chartn(*series) -> alt.Chart:
         series_dict[name] = serie
     dat =pd.DataFrame(series_dict)
     #print(dat)
+    base = alt.Chart(dat.reset_index()).transform_fold(fold=names).encode(
+        x=alt.X("index", title="Días desde hoy"),
+        y=alt.Y("value:Q", title="Total de pacientes"),
+        tooltip=["key:N", "value:Q"],
+        color="key:N",
+        text=alt.Text('max(daily):Q')
+        )
+    text = alt.Chart(dat.reset_index()).transform_fold(fold=names).encode(
+        x=alt.X("index", aggregate={'argmax': 'value'}),
+        y=alt.Y('max(value):Q'),
+        color="key:N",
+        text=alt.Text('max(value):Q')
+    )
 
     return (
-        alt
-        .Chart(dat.reset_index())
         #.transform_fold(fold=["Scenario1", "Scenario2", "Scenario3"])
-        .transform_fold(fold=names)
-        .mark_line()
-        .encode(
-            x=alt.X("index", title="Days from today"),
-            y=alt.Y("value:Q", title="Case Volume"),
-            tooltip=["key:N", "value:Q"],
-            color="key:N"
-        )
-        .interactive()
+        alt.layer(base.mark_line(),
+                  text.mark_text(dy=-10, fontSize=16))
+            .interactive()
     )
 
 
@@ -203,7 +166,24 @@ scenario3 = Scenario(name = "Escenario 3 - Medidas de aislamiento efectivas en 6
                     vent_los = 14,
                     )
 
-list_scenarios = [scenario1, scenario2, scenario3]
+scenario4 = Scenario(name = "Escenario 3 - Medidas de aislamiento efectivas en 52%",
+                    S = 1986560,
+                    market_share = 80,
+                    initial_infections = 52,
+                    n_days = 365,
+                    current_hosp = 2,
+                    doubling_time = 4,
+                    relative_contact_rate = 52,
+                    recovery_days = 14.0,
+                    hosp_rate = 2.5,
+                    icu_rate = 0.75,
+                    vent_rate = 0.65,
+                    hosp_los = 10,
+                    icu_los = 14,
+                    vent_los = 14,
+                    )
+
+list_scenarios = [scenario1, scenario2, scenario3, scenario4]
 
 # List of lists of parameters for each scenario
 data = []
@@ -346,19 +326,23 @@ i_s2 = cum_sir_raw.loc[cum_sir_raw["Scenario_id"] == 2][['day', 'infections']]
 i_s2.rename(columns = {'infections':'infectionsS2'}, inplace = True)
 i_s3 = cum_sir_raw.loc[cum_sir_raw["Scenario_id"] == 3][['day', 'infections']]
 i_s3.rename(columns = {'infections':'infectionsS3'}, inplace = True)
+i_s4 = cum_sir_raw.loc[cum_sir_raw["Scenario_id"] == 4][['day', 'infections']]
+i_s4.rename(columns = {'infections':'infectionsS4'}, inplace = True)
 
 merged = pd.merge(left=i_s1,right=i_s2, left_on='day', right_on='day')
 merged = pd.merge(left=merged,right=i_s3, left_on='day', right_on='day')
-merged = merged[[ 'infectionsS1', 'infectionsS2', 'infectionsS3' ]].astype(int)
+merged = pd.merge(left=merged,right=i_s4, left_on='day', right_on='day')
+merged = merged[[ 'infectionsS1', 'infectionsS2', 'infectionsS3', 'infectionsS4']].astype(int)
 copy_merged = merged
 
 s1 = merged['infectionsS1']
 s2 = merged['infectionsS2']
 s3 = merged['infectionsS3']
+s4 = merged['infectionsS4']
 
 
 # Graph the series for each scenario in a single graph
-st.altair_chart(comparing_chartn(s1, s2, s3), use_container_width=True)
+st.altair_chart(comparing_chartn(s1, s2, s3, s4), use_container_width=True)
 # Print the dataframe in which the graph is based
 st.dataframe(copy_merged)
 copy_merged.to_csv(r'model_data.csv', index = False)
@@ -375,19 +359,23 @@ i_s2 = cum_census.loc[cum_census["Scenario_id"] == 2][['day', 'hosp']]
 i_s2.rename(columns = {'hosp':'hospS2'}, inplace = True)
 i_s3 = cum_census.loc[cum_census["Scenario_id"] == 3][['day', 'hosp']]
 i_s3.rename(columns = {'hosp':'hospS3'}, inplace = True)
+i_s4 = cum_census.loc[cum_census["Scenario_id"] == 4][['day', 'hosp']]
+i_s4.rename(columns = {'hosp':'hospS4'}, inplace = True)
 
 merged = pd.merge(left=i_s1,right=i_s2, left_on='day', right_on='day')
 merged = pd.merge(left=merged,right=i_s3, left_on='day', right_on='day')
-merged = merged[[ 'hospS1', 'hospS2', 'hospS3' ]].astype(int)
+merged = pd.merge(left=merged,right=i_s4, left_on='day', right_on='day')
+merged = merged[[ 'hospS1', 'hospS2', 'hospS3', 'hospS4']].astype(int)
 
 copy_merged = merged
 
 s1 = merged['hospS1']
 s2 = merged['hospS2']
 s3 = merged['hospS3']
+s4 = merged['hospS4']
 
 # Graph the series for each scenario in a single graph
-st.altair_chart(comparing_chart3(s1, s2, s3), use_container_width=True)
+st.altair_chart(comparing_chartn(s1, s2, s3, s4), use_container_width=True)
 # Print the dataframe in which the graph is based
 st.dataframe(copy_merged)
 copy_merged.to_csv(r'hosp_data.csv', index = False)
@@ -404,19 +392,23 @@ i_s2 = cum_census.loc[cum_census["Scenario_id"] == 2][['day', 'icu']]
 i_s2.rename(columns = {'icu':'icuS2'}, inplace = True)
 i_s3 = cum_census.loc[cum_census["Scenario_id"] == 3][['day', 'icu']]
 i_s3.rename(columns = {'icu':'icuS3'}, inplace = True)
+i_s4 = cum_census.loc[cum_census["Scenario_id"] == 4][['day', 'icu']]
+i_s4.rename(columns = {'icu':'icuS4'}, inplace = True)
 
 merged = pd.merge(left=i_s1,right=i_s2, left_on='day', right_on='day')
 merged = pd.merge(left=merged,right=i_s3, left_on='day', right_on='day')
-merged = merged[[ 'icuS1', 'icuS2', 'icuS3' ]].astype(int)
+merged = pd.merge(left=merged,right=i_s4, left_on='day', right_on='day')
+merged = merged[[ 'icuS1', 'icuS2', 'icuS3', 'icuS4']].astype(int)
 
 copy_merged = merged
 
 s1 = merged['icuS1']
 s2 = merged['icuS2']
 s3 = merged['icuS3']
+s4 = merged['icuS4']
 
 # Graph the series for each scenario in a single graph
-st.altair_chart(comparing_chart3(s1, s2, s3), use_container_width=True)
+st.altair_chart(comparing_chartn(s1, s2, s3, s4), use_container_width=True)
 # Print the dataframe in which the graph is based
 st.dataframe(copy_merged)
 copy_merged.to_csv(r'uce_data.csv', index = False)
@@ -433,19 +425,24 @@ i_s2 = cum_census.loc[cum_census["Scenario_id"] == 2][['day', 'vent']]
 i_s2.rename(columns = {'vent':'ventS2'}, inplace = True)
 i_s3 = cum_census.loc[cum_census["Scenario_id"] == 3][['day', 'vent']]
 i_s3.rename(columns = {'vent':'ventS3'}, inplace = True)
+i_s4 = cum_census.loc[cum_census["Scenario_id"] == 4][['day', 'vent']]
+i_s4.rename(columns = {'vent':'ventS4'}, inplace = True)
+
 
 merged = pd.merge(left=i_s1,right=i_s2, left_on='day', right_on='day')
 merged = pd.merge(left=merged,right=i_s3, left_on='day', right_on='day')
-merged = merged[[ 'ventS1', 'ventS2', 'ventS3' ]].astype(int)
+merged = pd.merge(left=merged,right=i_s4, left_on='day', right_on='day')
+merged = merged[[ 'ventS1', 'ventS2', 'ventS3', 'ventS4']].astype(int)
 
 copy_merged = merged
 
 s1 = merged['ventS1']
 s2 = merged['ventS2']
 s3 = merged['ventS3']
+s4 = merged['ventS4']
 
 # Graph the series for each scenario in a single graph
-st.altair_chart(comparing_chart3(s1, s2, s3), use_container_width=True)
+st.altair_chart(comparing_chartn(s1, s2, s3, s4), use_container_width=True)
 # Print the dataframe in which the graph is based
 st.dataframe(copy_merged)
 copy_merged.to_csv(r'uci_data.csv', index = False)

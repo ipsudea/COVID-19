@@ -188,7 +188,7 @@ tidy_hosp <- hosp_mixed %>%
 
 hosp_colors <- c("acum" = "black", "hospS1" = "darkblue", "hospS2" ="darkorange", "hospS3" = "darkred")
 
-tidy_hosp %>%
+hosp_plot <- tidy_hosp %>%
   ggplot(aes(date, value, color = name)) +
   geom_line() +
   geom_point() +
@@ -196,19 +196,21 @@ tidy_hosp %>%
                                                  "Escenario pesimista (30%)", 
                                                  "Escenario intermedio (45%)",
                                                  "Escenario optimista (60%)")) +
-  facet_zoom(xlim = c(ymd("2020-04-13"), ymd("2020-04-25")),
-             ylim = c(0, 500), zoom.size = 1.2) +
-  theme(axis.text.y = element_text(size = 14),
-        title = element_text(size = 16, face = "bold", family = "sans"),
+  facet_zoom(xlim = c(ymd("2020-03-26"), ymd("2020-04-25")),
+             ylim = c(0, 50), zoom.size = 1.2) +
+  theme(axis.text.y = element_text(size = 12),
+        title = element_text(size = 14, face = "bold", family = "sans"),
         legend.position = "bottom",
         legend.text = element_text(margin = margin(r = 40, unit = "pt")),
         plot.title = element_text(hjust = 0.5)
         ) +
   labs(title = "COVID-19: Población hospitalizada - EPS priorizadas - Modelo SIR - Población susceptible: 1.986.560",
-       subtitle = "Fuente casos confirmados: Puesto de mando unificado - IPS Universitaria (20/04/2020)",
+       subtitle = "Fuente casos confirmados: Puesto de mando unificado - IPS Universitaria (21/04/2020)",
        x = NULL,
        y = NULL,
        color = NULL) 
+#Static
+ggsave(plot = hosp_plot, "hosp_comparison_21-04-2020.png", width = 12)
 ```
 
 
