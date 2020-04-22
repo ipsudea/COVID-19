@@ -24,6 +24,7 @@ library(plotly)
 library(ggpmisc)
 library(readxl)
 library(zoo)
+library(ggrepel)
 theme_set(theme_bw())
 ```
 
@@ -33,11 +34,10 @@ theme_set(theme_bw())
 raw_data <- read.socrata("https://www.datos.gov.co/resource/gt2j-8ykr.csv") %>% 
   as_tibble()
 
-antioquia_model <- read_csv("Fuentes/model_data.csv")
+antioquia_model <- read_csv("../src/model_data.csv")
 
 covid <- raw_data %>% 
-  mutate(fecha_diagnostico = as_date(fecha_diagnostico))
-
+  mutate_at(vars(starts_with("fecha")), as_date)
 
 cumulative <- covid %>%
   group_by(fecha_diagnostico, departamento) %>%
@@ -160,10 +160,10 @@ ts_data %>%
 
 
 ```{r}
-raw_ips <- read_excel("Fuentes/RESULTADOS PACIENTES COVID AL 17 de Abril 2020.xlsx")
-hosp_data <- read_csv("Fuentes/hosp_data.csv")
-uce_data <- read_csv("Fuentes/uce_data.csv")
-uci_data <- read_csv("Fuentes/uci_data.csv")
+raw_ips <- read_excel("../src/RESULTADOS PACIENTES COVID AL 17 de Abril 2020.xlsx")
+hosp_data <- read_csv("../src/hosp_data.csv")
+uce_data <- read_csv("../src/uce_data.csv")
+uci_data <- read_csv("../src/uci_data.csv")
 
 ips <- raw_ips %>%
   filter(Resultado...57 == "Positivo") %>% 
@@ -183,34 +183,48 @@ hosp_mixed <- hosp_data %>%
                           TRUE ~ acum))
 
 tidy_hosp <- hosp_mixed %>% 
-  pivot_longer(cols = c("hospS1", "hospS2", "hospS3", "acum"))
+  pivot_longer(cols = c("hospS1", "hospS2", "hospS3", "hospS4", "acum"))
 
 
-hosp_colors <- c("acum" = "black", "hospS1" = "darkblue", "hospS2" ="darkorange", "hospS3" = "darkred")
+hosp_colors <- c("acum" = "black", "hospS1" = "darkblue", "hospS2" = "darkorange", "hospS3" = "darkred", "hospS4" = "aquamarine4")
+hosp_alpha <- c("acum" = 1, "hospS1" = 0.4, "hospS2" = 0.4, "hospS3" = 0.4, "hospS4" = 1)
 
 hosp_plot <- tidy_hosp %>%
-  ggplot(aes(date, value, color = name)) +
+  mutate(date = as_datetime(date)) %>% 
+  ggplot(aes(date, value, color = name, alpha = name)) +
   geom_line() +
-  geom_point() +
+  geom_point(size = 0.9, alpha = 0.2) +
+  stat_peaks(aes(color = name, 
+                 label = paste(..y.label.., ..x.label..)), 
+             geom = "text", 
+             vjust = -0.5,
+             hjust = -0.04,
+             span = NULL,
+             x.label.fmt = "%d-%m(%b)",
+             y.label.fmt = "%.0f pacientes") +
   scale_color_manual(values = hosp_colors, labels = c("Casos confirmados", 
                                                  "Escenario pesimista (30%)", 
                                                  "Escenario intermedio (45%)",
-                                                 "Escenario optimista (60%)")) +
-  facet_zoom(xlim = c(ymd("2020-03-26"), ymd("2020-04-25")),
+                                                 "Escenario optimista (60%)",
+                                                 "Escenario ajustado (52%)")) +
+  scale_alpha_manual(values = hosp_alpha, labels = NULL, guide = "none")  +
+  facet_zoom(xlim = c(ymd_hms("2020-03-26 00:00:00"), ymd_hms("2020-04-25 00:00:00")),
              ylim = c(0, 50), zoom.size = 1.2) +
   theme(axis.text.y = element_text(size = 12),
         title = element_text(size = 14, face = "bold", family = "sans"),
         legend.position = "bottom",
         legend.text = element_text(margin = margin(r = 40, unit = "pt")),
-        plot.title = element_text(hjust = 0.5)
+        plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(size = 10)
         ) +
   labs(title = "COVID-19: Población hospitalizada - EPS priorizadas - Modelo SIR - Población susceptible: 1.986.560",
-       subtitle = "Fuente casos confirmados: Puesto de mando unificado - IPS Universitaria (21/04/2020)",
+       subtitle = "Fuente casos confirmados: Puesto de mando unificado - IPS Universitaria (19/04/2020)",
        x = NULL,
        y = NULL,
-       color = NULL) 
+       color = NULL,
+       alpha = NULL) 
 #Static
-ggsave(plot = hosp_plot, "hosp_comparison_21-04-2020.png", width = 12)
+ggsave(plot = hosp_plot, "../plots/hosp_comparison_22-04-2020.png", width = 12, height = 7)
 ```
 
 

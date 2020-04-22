@@ -130,4 +130,5 @@ dmypy.json
 *.csv
 *.txt
 *.xlsx
+*.Rhistory
 .Rhistory

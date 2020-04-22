@@ -2,11 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="e7188b92-4463-4064-b448-0088ef2b31cf" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/../../.Rhistory" beforeDir="false" afterPath="$PROJECT_DIR$/../../.Rhistory" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../covid-19.Rmd" beforeDir="false" afterPath="$PROJECT_DIR$/../../covid-19.Rmd" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../dpts.png" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
