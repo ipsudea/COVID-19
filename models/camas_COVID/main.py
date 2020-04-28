@@ -117,7 +117,7 @@ cum_census = pd.DataFrame(columns = column_names)
 
 scenario1 = Scenario(name = "Escenario 1 - Medidas de aislamiento efectivas en 30%",
                     S = 1986560,
-                    market_share = 80,
+                    market_share = 38.62,
                     initial_infections = 52,
                     n_days = 365,
                     current_hosp = 2,
@@ -134,7 +134,7 @@ scenario1 = Scenario(name = "Escenario 1 - Medidas de aislamiento efectivas en 3
 
 scenario2 = Scenario(name = "Escenario 2 - Medidas de aislamiento efectivas en 45%",
                     S = 1986560,
-                    market_share = 80,
+                    market_share = 38.62,
                     initial_infections = 52,
                     n_days = 365,
                     current_hosp = 2,
@@ -151,7 +151,7 @@ scenario2 = Scenario(name = "Escenario 2 - Medidas de aislamiento efectivas en 4
 
 scenario3 = Scenario(name = "Escenario 3 - Medidas de aislamiento efectivas en 60%",
                     S = 1986560,
-                    market_share = 80,
+                    market_share = 38.62,
                     initial_infections = 52,
                     n_days = 365,
                     current_hosp = 2,
@@ -168,7 +168,7 @@ scenario3 = Scenario(name = "Escenario 3 - Medidas de aislamiento efectivas en 6
 
 scenario4 = Scenario(name = "Escenario 3 - Medidas de aislamiento efectivas en 52%",
                     S = 1986560,
-                    market_share = 80,
+                    market_share = 38.62,
                     initial_infections = 52,
                     n_days = 365,
                     current_hosp = 2,

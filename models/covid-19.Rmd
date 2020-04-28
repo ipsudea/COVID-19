@@ -13,17 +13,18 @@ knitr::opts_chunk$set(echo = TRUE)
 
 
 ```{r}
-library(tidyverse)
-library(lubridate)
-library(gganimate)
-library(RSocrata)
-library(grid)
+library(tidyverse) # Data manipulation
+library(lubridate) # Dates parsing
+library(gganimate) # Plot animations
+library(RSocrata)  # Sources from the government
+library(grid)      # Plotting
 library(gghighlight)
 library(ggforce)
 library(plotly)
 library(ggpmisc)
 library(readxl)
 library(zoo)
+library(writexl)
 library(ggrepel)
 theme_set(theme_bw())
 ```
@@ -57,17 +58,22 @@ national_cases <- cumulative %>%
   geom_point(size = 2) +
   geom_vline(xintercept = as.numeric(ymd("2020-03-24")), linetype = 4, color = "black") +
   scale_x_date(date_breaks = "5 days", date_labels = "%d %b") +
-  scale_y_continuous(breaks = seq(from = 0, to = 1200, by = 200)) +
+  scale_y_continuous(breaks = seq(from = 0, to = 2400, by = 200)) +
+  stat_peaks(aes(color = departamento, 
+                 label = paste(..y.label..)), 
+             geom = "text_repel",
+             vjust = 1,
+             span = NULL,
+             y.label.fmt = "%.0f infectados") +
   theme(legend.position = "bottom",
-        legend.spacing.x = unit(1, "cm"),
         axis.text.x = element_text(angle = 20, size = 14),
         axis.text.y = element_text(size = 14),
         title = element_text(size = 16, face = "bold", family = "sans"),
-        legend.text = element_text(size = 12, margin = margin(r = 30, unit = "pt")),
-        plot.title = element_text(hjust = 0.5)) +
-  #gghighlight(departamento == "ANTIOQUIA") +
+        legend.text = element_text(margin = margin(r = 40, unit = "pt")),
+        plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(size = 9)) +
   labs(title = "COVID-19: Evolución de casos acumulados por departamento",
-       subtitle = "Fuente: Instituto Nacional de Salud (15/04/2020)",
+       subtitle = "Fuente: Instituto Nacional de Salud (25/04/2020)",
        x = NULL,
        y = NULL,
        color = NULL)
@@ -81,9 +87,9 @@ gganimate::anim_save("dpts_animation.gif")
 # Highlight
 dpts_high <- national_cases +
   gghighlight(departamento == "Antioquia")
-ggsave(plot = dpts_high, "dpts_highlight_20-04-2020.png")  
+ggsave(plot = dpts_high, "../plots/dpts_highlight_25-04-2020.png", width = 11, height = 6)  
 #Static
-ggsave(plot = national_cases, "dpts_20-04-2020.png")
+ggsave(plot = national_cases, "../plots/dpts_25-04-2020.png", width = 10, height = 6)
 ```
 
 
@@ -101,25 +107,35 @@ tidy_antioquia <- antioquia_model %>%
   left_join(antioquia, by = "fecha_diagnostico") %>% 
   pivot_longer(cols = c("infectionsS1", "infectionsS2", "infectionsS3", "n", "acum"))
 
-models_plot <- tidy_antioquia %>%
+models_plot <- tidy_antioquia %>% 
+  mutate(fecha_diagnostico = as_datetime(fecha_diagnostico)) %>%
   filter(name != "n") %>% 
   ggplot(aes(fecha_diagnostico, value, color = name)) +
   geom_line() +
-  geom_point() +
+  geom_point(size = 0.9, alpha = 0.4) +
   scale_color_manual(values = colors, labels = c("Casos confirmados", 
                                                  "Escenario pesimista (30%)", 
                                                  "Escenario intermedio (45%)",
                                                  "Escenario optimista (60%)")) +
-  facet_zoom(xlim = c(ymd("2020-04-01"), ymd("2020-04-30")),
+  facet_zoom(xlim = c(ymd_hms("2020-04-05 00:00:00"), ymd_hms("2020-05-05 00:00:00")),
              ylim = c(0, 500), zoom.size = 1.2) +
+  stat_peaks(aes(color = name, 
+                 label = paste(..y.label.., ..x.label..)), 
+             geom = "text", 
+             vjust = -0.5,
+             hjust = -0.04,
+             span = NULL,
+             x.label.fmt = "%d-%m(%b)",
+             y.label.fmt = "%.0f pacientes") +
   theme(axis.text.y = element_text(size = 14),
         title = element_text(size = 16, face = "bold", family = "sans"),
         legend.position = "bottom",
         legend.text = element_text(margin = margin(r = 40, unit = "pt")),
-        plot.title = element_text(hjust = 0.5)
+        plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(size = 10)
         ) +
   labs(title = "COVID-19: Antioquia - Modelo SIR - Población susceptible: 6.355.502",
-       subtitle = "Fuente casos confirmados: Instituto Nacional de Salud (20/04/2020)",
+       subtitle = "Fuente casos confirmados: Instituto Nacional de Salud (25/04/2020)",
        x = NULL,
        y = NULL,
        color = NULL) 
@@ -132,7 +148,7 @@ gganimate::anim_save("models_plot.gif")
 
 
 #Static
-ggsave(plot = models_plot, "model_comparison_20-04-2020.png")
+ggsave(plot = models_plot, "../plots/model_comparison_25-04-2020.png", width = 13, height = 6)
 ```
 
 ## Example of why time series should not be used
@@ -156,31 +172,41 @@ ts_data %>%
   
 ```
 
-## Local data from the clinic
-
+## Local data for validation
 
 ```{r}
-raw_ips <- read_excel("../src/RESULTADOS PACIENTES COVID AL 17 de Abril 2020.xlsx")
-hosp_data <- read_csv("../src/hosp_data.csv")
-uce_data <- read_csv("../src/uce_data.csv")
-uci_data <- read_csv("../src/uci_data.csv")
-
-ips <- raw_ips %>%
-  filter(Resultado...57 == "Positivo") %>% 
-  mutate(`Fecha consulta` = as_date(`Fecha consulta`)) %>% 
-  group_by(`Fecha consulta`, ERP) %>%
-  count() %>%
-  ungroup()
-
-hosp_mixed <- hosp_data %>%
+# This function joins the data with the real information, needs to be modified once we get UCI and UCE
+get_mixed <- function(raw_data, ips_data) {
+  raw_data %>%
   mutate(date = seq.Date(from = ymd("2020-03-25"), to = ymd("2021-03-11"), by = 1)) %>% 
-  left_join(ips, by = c("date" = "Fecha consulta")) %>%
+  left_join(ips_data, by = c("date" = "Fecha consulta")) %>%
   mutate(n = replace_na(n,0),
          acum = cumsum(n)) %>% 
   mutate(n = case_when(date > Sys.Date() ~ NA_real_,
                        TRUE ~ n),
          acum = case_when(date > Sys.Date() ~ NA_real_,
                           TRUE ~ acum))
+}
+```
+
+
+### Hospitalization
+
+```{r}
+raw_ips <- read_excel("../src/RESULTADOS PACIENTES COVID AL 17 de Abril 2020.xlsx")
+hosp_data <- read_csv("../src/hosp_data.csv")
+new_hosp_data <- read_csv("../src/new_hosp_data.csv")
+
+
+ips_hosp <- raw_ips %>%
+  filter(Resultado...57 == "Positivo") %>% 
+  mutate(`Fecha consulta` = as_date(`Fecha consulta`)) %>% 
+  group_by(`Fecha consulta`, ERP) %>%
+  count() %>%
+  ungroup()
+
+get_mixed(new_hosp_data, ips_hosp)
+hosp_mixed <- get_mixed(new_hosp_data, ips_hosp)
 
 tidy_hosp <- hosp_mixed %>% 
   pivot_longer(cols = c("hospS1", "hospS2", "hospS3", "hospS4", "acum"))
@@ -208,6 +234,120 @@ hosp_plot <- tidy_hosp %>%
                                                  "Escenario optimista (60%)",
                                                  "Escenario ajustado (52%)")) +
   scale_alpha_manual(values = hosp_alpha, labels = NULL, guide = "none")  +
+  facet_zoom(xlim = c(ymd_hms("2020-04-05 00:00:00"), ymd_hms("2020-05-05 00:00:00")),
+             ylim = c(0, 50), zoom.size = 1.2) +
+  theme(axis.text.y = element_text(size = 12),
+        title = element_text(size = 14, face = "bold", family = "sans"),
+        legend.position = "bottom",
+        legend.text = element_text(margin = margin(r = 40, unit = "pt")),
+        plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(size = 10)
+        ) +
+  labs(title = "COVID-19: Población hospitalizada - EPS priorizadas - Modelo SIR - Población susceptible: 767.155",
+       subtitle = "Fuente casos confirmados: Puesto de mando unificado - IPS Universitaria (19/04/2020)",
+       x = NULL,
+       y = NULL,
+       color = NULL,
+       alpha = NULL) 
+#Static
+ggsave(plot = hosp_plot, "../plots/new_sc_hosp_comparison_28-04-2020.png", width = 12, height = 7)
+
+# Data aggregation
+hosp_summarized <- hosp_mixed %>% 
+  group_by(fecha = tsibble::yearmonth(date)) %>% 
+  summarize(ajustado = max(hospS4), pesimista = max(hospS1),
+            intermedio = max(hospS2), optimista = max(hospS3))
+
+writexl::write_xlsx(hosp_summarized, "resultados_modelos_hosp_consolidado_mensual.xlsx")
+```
+
+### UCE
+
+
+```{r}
+uce_data <- read_csv("../src/uce_data.csv")
+new_uce_data <- read_csv("../src/new_uce_data.csv")
+## Let's mix it with the hospitalization data for now
+
+tidy_uce <- get_mixed(new_uce_data, ips_hosp) %>% 
+  dplyr::select(-n, -acum, -ERP) %>% 
+  pivot_longer(cols = 1:4)
+
+uce_colors <- c("icuS1" = "darkblue", "icuS2" = "darkorange", "icuS3" = "darkred", "icuS4" = "aquamarine4")
+uce_alpha <- c("icuS1" = 0.4, "icuS2" = 0.4, "icuS3" = 0.4, "icuS4" = 1)
+
+uce_plot <- tidy_uce %>%
+  mutate(date = as_datetime(date)) %>% 
+  ggplot(aes(date, value, color = name, alpha = name)) +
+  geom_line() +
+  geom_point(size = 0.9, alpha = 0.2) +
+  stat_peaks(aes(color = name, 
+                 label = paste(..y.label.., ..x.label..)), 
+             geom = "text", 
+             vjust = -0.5,
+             hjust = -0.04,
+             span = NULL,
+             x.label.fmt = "%d-%m(%b)",
+             y.label.fmt = "%.0f pacientes") +
+  scale_color_manual(values = uce_colors, labels = c( 
+                                                 "Escenario pesimista (30%)", 
+                                                 "Escenario intermedio (45%)",
+                                                 "Escenario optimista (60%)",
+                                                 "Escenario ajustado (52%)")) +
+  scale_alpha_manual(values = uce_alpha, labels = NULL, guide = "none")  +
+  facet_zoom(xlim = c(ymd_hms("2020-04-05 00:00:00"), ymd_hms("2020-05-05 00:00:00")),
+             ylim = c(0, 50), zoom.size = 1.2) +
+  theme(axis.text.y = element_text(size = 12),
+        title = element_text(size = 14, face = "bold", family = "sans"),
+        legend.position = "bottom",
+        legend.text = element_text(margin = margin(r = 40, unit = "pt")),
+        plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(size = 10)
+        ) +
+  labs(title = "COVID-19: Población en UCE - EPS priorizadas - Modelo SIR - Población susceptible: 767.155",
+       subtitle = "Fuente casos confirmados: A la espera de datos (23/04/2020)",
+       x = NULL,
+       y = NULL,
+       color = NULL,
+       alpha = NULL)
+
+#Static
+ggsave(plot = uce_plot, "../plots/new_sc_uce_plot_28-04-2020.png", width = 12, height = 7)
+```
+
+
+### UCI
+
+```{r}
+uci_data <- read_csv("../src/uci_data.csv")
+new_uci_data <- read_csv("../src/new_uci_data.csv")
+
+tidy_uci <- get_mixed(new_uci_data , ips_hosp) %>% 
+  dplyr::select(-n, -acum, -ERP) %>% 
+  pivot_longer(cols = 1:4)
+
+uci_colors <- c("ventS1" = "darkblue", "ventS2" = "darkorange", "ventS3" = "darkred", "ventS4" = "aquamarine4")
+uci_alpha <- c("ventS1" = 0.4, "ventS2" = 0.4, "ventS3" = 0.4, "ventS4" = 1)
+
+uci_plot <- tidy_uci %>%
+  mutate(date = as_datetime(date)) %>% 
+  ggplot(aes(date, value, color = name, alpha = name)) +
+  geom_line() +
+  geom_point(size = 0.9, alpha = 0.2) +
+  stat_peaks(aes(color = name, 
+                 label = paste(..y.label.., ..x.label..)), 
+             geom = "text", 
+             vjust = -0.5,
+             hjust = -0.04,
+             span = NULL,
+             x.label.fmt = "%d-%m(%b)",
+             y.label.fmt = "%.0f pacientes") +
+  scale_color_manual(values = uci_colors, labels = c( 
+                                                 "Escenario pesimista (30%)", 
+                                                 "Escenario intermedio (45%)",
+                                                 "Escenario optimista (60%)",
+                                                 "Escenario ajustado (52%)")) +
+  scale_alpha_manual(values = uci_alpha, labels = NULL, guide = "none")  +
   facet_zoom(xlim = c(ymd_hms("2020-03-26 00:00:00"), ymd_hms("2020-04-25 00:00:00")),
              ylim = c(0, 50), zoom.size = 1.2) +
   theme(axis.text.y = element_text(size = 12),
@@ -217,14 +357,14 @@ hosp_plot <- tidy_hosp %>%
         plot.title = element_text(hjust = 0.5),
         plot.subtitle = element_text(size = 10)
         ) +
-  labs(title = "COVID-19: Población hospitalizada - EPS priorizadas - Modelo SIR - Población susceptible: 1.986.560",
-       subtitle = "Fuente casos confirmados: Puesto de mando unificado - IPS Universitaria (19/04/2020)",
+  labs(title = "COVID-19: Población en UCI - EPS priorizadas - Modelo SIR - Población susceptible: 767.155",
+       subtitle = "Fuente casos confirmados: A la espera de datos (23/04/2020)",
        x = NULL,
        y = NULL,
        color = NULL,
-       alpha = NULL) 
-#Static
-ggsave(plot = hosp_plot, "../plots/hosp_comparison_22-04-2020.png", width = 12, height = 7)
-```
+       alpha = NULL)
 
+#Static
+ggsave(plot = uci_plot, "../plots/new_sc_uci_plot_28-04-2020.png", width = 12, height = 7)
+```
 
