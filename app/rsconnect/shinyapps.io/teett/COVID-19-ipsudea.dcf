@@ -1,0 +1,12 @@
+name: COVID-19-ipsudea
+title: COVID-19-ipsudea
+username:
+account: teett
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 2212476
+bundleId: 3083163
+url: https://teett.shinyapps.io/COVID-19-ipsudea/
+when: 1588193956.2742
+asMultiple: FALSE
+asStatic: FALSE

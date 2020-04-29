@@ -348,7 +348,7 @@ uci_plot <- tidy_uci %>%
                                                  "Escenario optimista (60%)",
                                                  "Escenario ajustado (52%)")) +
   scale_alpha_manual(values = uci_alpha, labels = NULL, guide = "none")  +
-  facet_zoom(xlim = c(ymd_hms("2020-03-26 00:00:00"), ymd_hms("2020-04-25 00:00:00")),
+  facet_zoom(xlim = c(ymd_hms("2020-04-05 00:00:00"), ymd_hms("2020-05-05 00:00:00")),
              ylim = c(0, 50), zoom.size = 1.2) +
   theme(axis.text.y = element_text(size = 12),
         title = element_text(size = 14, face = "bold", family = "sans"),
