@@ -27,6 +27,8 @@ raw_data <- read.socrata("https://www.datos.gov.co/resource/gt2j-8ykr.csv") %>%
 
 antioquia_model <- read_csv("model_data.csv")
 raw_ips <- read_excel("RESULTADOS PACIENTES COVID AL 17 de Abril 2020.xlsx")
+raw_ips <- read_excel("BASE DE DATOS COVID-19 29-04-20.xlsx", skip = 6)
+
 
 covid <- raw_data %>% 
     mutate_at(vars(starts_with("fecha")), as_date)
@@ -137,7 +139,8 @@ new_hosp_data <- read_csv("new_hosp_data.csv")
 
 
 ips_hosp <- raw_ips %>%
-    filter(Resultado...57 == "Positivo") %>% 
+    filter(Resultado...62 == "Positivo",
+           Servicio == "PISO 4 - OCCIDENTE" | Servicio == "PISO 3 - OCCIDENTE") %>% 
     mutate(`Fecha consulta` = as_date(`Fecha consulta`)) %>% 
     group_by(`Fecha consulta`, ERP) %>%
     count() %>%
@@ -213,7 +216,15 @@ uce_data <- read_csv("uce_data.csv")
 new_uce_data <- read_csv("new_uce_data.csv")
 ## Let's mix it with the hospitalization data for now
 
-tidy_uce <- get_mixed(uce_data, ips_hosp) %>% 
+ips_uce <- raw_ips %>%
+    filter(Resultado...62 == "Positivo",
+           str_detect(Servicio, "MI|UCE|SAI")) %>% 
+    mutate(`Fecha consulta` = as_date(`Fecha consulta`)) %>% 
+    group_by(`Fecha consulta`, ERP) %>%
+    count() %>%
+    ungroup()
+
+tidy_uce <- get_mixed(uce_data, ips_uce) %>% 
     dplyr::select(-n, -acum, -ERP) %>% 
     pivot_longer(cols = 1:4)
 
@@ -276,12 +287,22 @@ calculate_maxima_uce <- function(data) {
 
 # UCI
 
+
+
 uci_data <- read_csv("uci_data.csv")
 new_uci_data <- read_csv("new_uci_data.csv")
 
-new_tidy_uci <- get_mixed(new_uci_data , ips_hosp) %>% 
-    dplyr::select(-n, -acum, -ERP) %>% 
-    pivot_longer(cols = 1:4)
+ips_uci <- raw_ips %>%
+    filter(Resultado...62 == "Positivo",
+           Servicio == "UCI-V 4" | Servicio == "UCI MEDICO QUIRURGICA" | 
+               Servicio == "UCI 5") %>% 
+    mutate(`Fecha consulta` = as_date(`Fecha consulta`)) %>% 
+    group_by(`Fecha consulta`, ERP) %>%
+    count() %>%
+    ungroup()
+
+new_tidy_uci <- get_mixed(new_uci_data , ips_uci) %>%
+    pivot_longer(cols = c(1:4, "n"))
 
 tidy_uci <- get_mixed(uci_data , ips_hosp) %>% 
     dplyr::select(-n, -acum, -ERP) %>% 
