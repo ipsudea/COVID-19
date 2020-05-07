@@ -52,28 +52,29 @@ cumulative <- covid %>%
 
 ```{r}
 national_cases <- cumulative %>%
-  filter(departamento %in% c("Antioquia", "Cundinamarca", "Cartagena D.T. y C.", "Valle del Cauca", "Bogotá D.C.")) %>% 
+  filter(departamento %in% c("Antioquia", "Meta", "Cartagena D.T. y C.", "Valle del Cauca", "Bogotá D.C.")) %>% 
   ggplot(aes(x = fecha_diagnostico, y = acum, color = departamento)) +
-  geom_line(size = 1) +
-  geom_point(size = 2) +
+  geom_line(size = 0.5) +
+  geom_point(size = 0.6) +
   geom_vline(xintercept = as.numeric(ymd("2020-03-24")), linetype = 4, color = "black") +
-  scale_x_date(date_breaks = "5 days", date_labels = "%d %b") +
-  scale_y_continuous(breaks = seq(from = 0, to = 2400, by = 200)) +
+  scale_x_date(date_breaks = "10 days", date_labels = "%d %b") +
+  scale_y_continuous(breaks = seq(from = 0, to = 4000, by = 200)) +
   stat_peaks(aes(color = departamento, 
                  label = paste(..y.label..)), 
              geom = "text_repel",
              vjust = 1,
              span = NULL,
-             y.label.fmt = "%.0f infectados") +
+             y.label.fmt = "%.0f infectados",
+             size = 2) +
   theme(legend.position = "bottom",
-        axis.text.x = element_text(angle = 20, size = 14),
-        axis.text.y = element_text(size = 14),
+        axis.text.x = element_text(size = 5),
+        axis.text.y = element_text(size = 5),
         title = element_text(size = 16, face = "bold", family = "sans"),
-        legend.text = element_text(margin = margin(r = 40, unit = "pt")),
-        plot.title = element_text(hjust = 0.5),
-        plot.subtitle = element_text(size = 9)) +
+        legend.text = element_text(margin = margin(r = 10, unit = "pt"), size = 4),
+        plot.title = element_text(hjust = 0.5, size = 8),
+        plot.subtitle = element_text(size = 6)) +
   labs(title = "COVID-19: Evolución de casos acumulados por departamento",
-       subtitle = "Fuente: Instituto Nacional de Salud (25/04/2020)",
+       subtitle = "Fuente: Instituto Nacional de Salud (06/05/2020)",
        x = NULL,
        y = NULL,
        color = NULL)
@@ -89,7 +90,7 @@ dpts_high <- national_cases +
   gghighlight(departamento == "Antioquia")
 ggsave(plot = dpts_high, "../plots/dpts_highlight_25-04-2020.png", width = 11, height = 6)  
 #Static
-ggsave(plot = national_cases, "../plots/dpts_25-04-2020.png", width = 10, height = 6)
+ggsave(plot = national_cases, "../plots/dpts_06-05-2020.png", width = 5, height = 4)
 ```
 
 
@@ -337,34 +338,35 @@ uci_plot <- tidy_uci %>%
   stat_peaks(aes(color = name, 
                  label = paste(..y.label.., ..x.label..)), 
              geom = "text", 
-             vjust = -0.5,
+             vjust = -0.4,
              hjust = -0.04,
              span = NULL,
              x.label.fmt = "%d-%m(%b)",
-             y.label.fmt = "%.0f pacientes") +
+             y.label.fmt = "%.0f pacientes",
+             size = 2) +
   scale_color_manual(values = uci_colors, labels = c( 
                                                  "Escenario pesimista (30%)", 
                                                  "Escenario intermedio (45%)",
                                                  "Escenario optimista (60%)",
                                                  "Escenario ajustado (52%)")) +
   scale_alpha_manual(values = uci_alpha, labels = NULL, guide = "none")  +
-  facet_zoom(xlim = c(ymd_hms("2020-04-05 00:00:00"), ymd_hms("2020-05-05 00:00:00")),
-             ylim = c(0, 50), zoom.size = 1.2) +
-  theme(axis.text.y = element_text(size = 12),
-        title = element_text(size = 14, face = "bold", family = "sans"),
+  # facet_zoom(xlim = c(ymd_hms("2020-04-05 00:00:00"), ymd_hms("2020-05-05 00:00:00")),
+  #            ylim = c(0, 50), zoom.size = 0.5) +
+  theme(axis.text.y = element_text(size = 5),
+        title = element_text(size = 8, face = "bold", family = "sans"),
         legend.position = "bottom",
-        legend.text = element_text(margin = margin(r = 40, unit = "pt")),
+        legend.text = element_text(margin = margin(r = 2, unit = "pt"), size = 5),
         plot.title = element_text(hjust = 0.5),
-        plot.subtitle = element_text(size = 10)
+        plot.subtitle = element_text(size = 5)
         ) +
-  labs(title = "COVID-19: Población en UCI - EPS priorizadas - Modelo SIR - Población susceptible: 767.155",
-       subtitle = "Fuente casos confirmados: A la espera de datos (23/04/2020)",
+  labs(title = "COVID-19: Población en UCI - Modelo SIR - Población susceptible: 767.155",
+       #subtitle = "Fuente casos confirmados: A la espera de datos (23/04/2020)",
        x = NULL,
        y = NULL,
        color = NULL,
        alpha = NULL)
 
 #Static
-ggsave(plot = uci_plot, "../plots/new_sc_uci_plot_28-04-2020.png", width = 12, height = 7)
+ggsave(plot = uci_plot, "../plots/new_sc_uci_plot_06-05-2020.png", width = 5, height = 4)
 ```
 
