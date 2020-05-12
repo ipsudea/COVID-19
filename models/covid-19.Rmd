@@ -194,13 +194,13 @@ get_mixed <- function(raw_data, ips_data) {
 ### Hospitalization
 
 ```{r}
-raw_ips <- read_excel("../src/RESULTADOS PACIENTES COVID AL 17 de Abril 2020.xlsx")
+raw_ips <- read_excel("../src/BASE DE DATOS COVID-19 29-04-20.xlsx", skip = 6)
 hosp_data <- read_csv("../src/hosp_data.csv")
 new_hosp_data <- read_csv("../src/new_hosp_data.csv")
 
 
 ips_hosp <- raw_ips %>%
-  filter(Resultado...57 == "Positivo") %>% 
+  filter(Resultado...63 == "Positivo") %>% 
   mutate(`Fecha consulta` = as_date(`Fecha consulta`)) %>% 
   group_by(`Fecha consulta`, ERP) %>%
   count() %>%
@@ -370,3 +370,40 @@ uci_plot <- tidy_uci %>%
 ggsave(plot = uci_plot, "../plots/new_sc_uci_plot_06-05-2020.png", width = 5, height = 4)
 ```
 
+### Análisis de pacientes negativos vs positivos
+
+
+         
+```{r}
+cons <- raw_ips %>% 
+  mutate(`Fecha consulta` = as_date(`Fecha consulta`)) %>% 
+  group_by(Resultado...63,`Fecha consulta`) %>% 
+  count(Resultado...63) %>%
+  group_by(Resultado...63) %>% 
+  mutate(acum = cumsum(n)) %>% 
+  ungroup() %>%
+  pivot_longer(cols = c(n, acum)) %>% 
+  filter(!is.na(Resultado...63))
+
+cons %>% 
+  ggplot(aes(`Fecha consulta`, y = value, color = name)) +
+  geom_line() +
+  facet_wrap(~Resultado...63) +
+  stat_peaks(geom = "text_repel",
+             span = NULL,
+             aes(label = paste(..y.label..)))
+
+proporcion <- cons %>%
+  filter(name == "acum") %>% 
+  spread(key = "Resultado...63", value = value) %>% 
+  mutate(Positivo = zoo::na.locf(Positivo, fromLast = TRUE),
+         proporcion = Negativo/Positivo)
+
+
+write_xlsx(proporcion, "proporcion_acumulados.xlsx")
+
+proporcion %>% 
+  summarize_if(is.numeric, ~mean(.))
+
+```
+         

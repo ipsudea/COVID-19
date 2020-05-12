@@ -139,7 +139,7 @@ new_hosp_data <- read_csv("new_hosp_data.csv")
 
 
 ips_hosp <- raw_ips %>%
-    filter(Resultado...62 == "Positivo",
+    filter(Resultado...63 == "Positivo",
            Servicio == "PISO 4 - OCCIDENTE" | Servicio == "PISO 3 - OCCIDENTE") %>% 
     mutate(`Fecha consulta` = as_date(`Fecha consulta`)) %>% 
     group_by(`Fecha consulta`, ERP) %>%
