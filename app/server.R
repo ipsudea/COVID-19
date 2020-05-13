@@ -27,7 +27,7 @@ raw_data <- read.socrata("https://www.datos.gov.co/resource/gt2j-8ykr.csv") %>%
 
 antioquia_model <- read_csv("model_data.csv")
 raw_ips <- read_excel("RESULTADOS PACIENTES COVID AL 17 de Abril 2020.xlsx")
-raw_ips <- read_excel("BASE DE DATOS COVID-19 29-04-20.xlsx", skip = 6)
+raw_ips <- read_excel("BASE DE DATOS COVID-19 29-04-20.xlsx", skip = 6, n_max = 273)
 
 
 covid <- raw_data %>% 
@@ -97,7 +97,7 @@ models_plot <- tidy_antioquia %>%
                                                    "Escenario pesimista (30%)", 
                                                    "Escenario intermedio (45%)",
                                                    "Escenario optimista (60%)")) +
-    facet_zoom(xlim = c(ymd_hms("2020-04-05 00:00:00"), ymd_hms("2020-05-05 00:00:00")),
+    facet_zoom(xlim = c(ymd_hms("2020-04-05 00:00:00"), ymd_hms("2020-05-15 00:00:00")),
                ylim = c(0, 500), zoom.size = 1.2) +
     stat_peaks(aes(color = name, 
                    label = paste(..y.label.., ..x.label..)), 
@@ -115,7 +115,7 @@ models_plot <- tidy_antioquia %>%
           plot.subtitle = element_text(size = 10)
     ) +
     labs(title = "COVID-19: Antioquia - Modelo SIR - Población susceptible: 6.355.502",
-         subtitle = "Fuente casos confirmados: Instituto Nacional de Salud (25/04/2020)",
+         subtitle = "Fuente casos confirmados: Instituto Nacional de Salud (12/05/2020)",
          x = NULL,
          y = NULL,
          color = NULL)
@@ -139,8 +139,7 @@ new_hosp_data <- read_csv("new_hosp_data.csv")
 
 
 ips_hosp <- raw_ips %>%
-    filter(Resultado...63 == "Positivo",
-           Servicio == "PISO 4 - OCCIDENTE" | Servicio == "PISO 3 - OCCIDENTE") %>% 
+    filter(Resultado...62 == "Positivo") %>% 
     mutate(`Fecha consulta` = as_date(`Fecha consulta`)) %>% 
     group_by(`Fecha consulta`, ERP) %>%
     count() %>%
@@ -158,10 +157,10 @@ new_tidy_hosp <- new_hosp_mixed %>%
 
 
 fn_hosp_pt <- function(data, 
-                       x_lim = c(ymd_hms("2020-04-05 00:00:00"), ymd_hms("2020-05-05 00:00:00")),
+                       x_lim = c(ymd_hms("2020-04-05 00:00:00"), ymd_hms("2020-05-15 00:00:00")),
                        y_lim = c(0, 50),
                        pob = 767155,
-                       upd_date = "(19/04/2020)"
+                       upd_date = "(29/04/2020)"
                        ){
     hosp_colors <- c("acum" = "black", "hospS1" = "darkblue", "hospS2" = "darkorange", "hospS3" = "darkred", "hospS4" = "aquamarine4")
     hosp_alpha <- c("acum" = 1, "hospS1" = 0.4, "hospS2" = 0.4, "hospS3" = 0.4, "hospS4" = 1)
@@ -233,7 +232,7 @@ new_tidy_uce <- get_mixed(new_uce_data, ips_hosp) %>%
     pivot_longer(cols = 1:4)
 
 fn_uce_pt <- function(data, 
-                       x_lim = c(ymd_hms("2020-04-05 00:00:00"), ymd_hms("2020-05-05 00:00:00")),
+                       x_lim = c(ymd_hms("2020-04-05 00:00:00"), ymd_hms("2020-05-15 00:00:00")),
                        y_lim = c(0, 50),
                        pob = 767155,
                        upd_date = "(19/04/2020)"
