@@ -35,7 +35,7 @@ theme_set(theme_bw())
 raw_data <- read.socrata("https://www.datos.gov.co/resource/gt2j-8ykr.csv") %>% 
   as_tibble()
 
-antioquia_model <- read_csv("../src/model_data.csv")
+antioquia_model <- read_csv("../src/model_data_v2.csv")
 
 covid <- raw_data %>% 
   mutate_at(vars(starts_with("fecha")), as_date)
@@ -101,12 +101,13 @@ antioquia <- cumulative %>%
   filter(departamento == "Antioquia",
          acum > 200)
 
-colors <- c("acum" = "black", "infectionsS1" = "darkblue", "infectionsS2" ="darkorange", "infectionsS3" = "darkred", "n" = "grey")
+colors <- c("acum" = "black", "infectionsS1" = "darkblue", "infectionsS2" ="darkorange", "infectionsS3" = "darkred", "n" = "grey",
+            "infectionsS4" = "darkgreen")
 
 tidy_antioquia <- antioquia_model %>%
   mutate(fecha_diagnostico = seq.Date(from = ymd("2020-04-07"), to = ymd("2021-04-07"), by = 1)) %>% 
   left_join(antioquia, by = "fecha_diagnostico") %>% 
-  pivot_longer(cols = c("infectionsS1", "infectionsS2", "infectionsS3", "n", "acum"))
+  pivot_longer(cols = c("infectionsS1", "infectionsS2", "infectionsS3", "infectionsS4", "n", "acum"))
 
 models_plot <- tidy_antioquia %>% 
   mutate(fecha_diagnostico = as_datetime(fecha_diagnostico)) %>%
@@ -117,17 +118,19 @@ models_plot <- tidy_antioquia %>%
   scale_color_manual(values = colors, labels = c("Casos confirmados", 
                                                  "Escenario pesimista (30%)", 
                                                  "Escenario intermedio (45%)",
-                                                 "Escenario optimista (60%)")) +
-  facet_zoom(xlim = c(ymd_hms("2020-04-05 00:00:00"), ymd_hms("2020-05-15 00:00:00")),
-             ylim = c(0, 500), zoom.size = 1.2) +
+                                                 "Escenario optimista (60%)",
+                                                 "Escenario ajustado (62%)")) +
+  facet_zoom(xlim = c(ymd_hms("2020-04-08 00:00:00"), ymd_hms("2020-05-20 00:00:00")),
+             ylim = c(0, 700), zoom.size = 0.7) +
   stat_peaks(aes(color = name, 
                  label = paste(..y.label.., ..x.label..)), 
              geom = "text", 
              vjust = -0.5,
-             hjust = -0.04,
+             hjust = 0.2,
              span = NULL,
              x.label.fmt = "%d-%m(%b)",
-             y.label.fmt = "%.0f pacientes") +
+             y.label.fmt = "%.0f pacientes",
+             size = 3) +
   theme(axis.text.y = element_text(size = 14),
         title = element_text(size = 16, face = "bold", family = "sans"),
         legend.position = "bottom",
@@ -136,7 +139,7 @@ models_plot <- tidy_antioquia %>%
         plot.subtitle = element_text(size = 10)
         ) +
   labs(title = "COVID-19: Antioquia - Modelo SIR - Población susceptible: 6.355.502",
-       subtitle = "Fuente casos confirmados: Instituto Nacional de Salud (12/05/2020)",
+       subtitle = "Fuente casos confirmados: Instituto Nacional de Salud (15/05/2020) - Fecha del modelo ajustado: (15/05/2020)",
        x = NULL,
        y = NULL,
        color = NULL) 
@@ -149,7 +152,7 @@ gganimate::anim_save("models_plot.gif")
 
 
 #Static
-ggsave(plot = models_plot, "../plots/model_comparison_25-04-2020.png", width = 13, height = 6)
+ggsave(plot = models_plot, "../plots/model_comparison_15-05-2020.png", width = 13, height = 6)
 ```
 
 ## Example of why time series should not be used
