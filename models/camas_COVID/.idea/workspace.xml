@@ -25,12 +25,12 @@
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
-    <option name="showExcludedFiles" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent">
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="last_opened_file_path" value="$USER_HOME$/AppData/Roaming/Microsoft/Windows/Start Menu/Programs/Python 3.8" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
   <component name="RecentsManager">
@@ -84,29 +84,35 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="414" y="174" width="1092" height="707" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1585187662905" />
-    <state x="739" y="274" key="FileChooserDialogImpl" timestamp="1585187261193">
+    <state x="739" y="274" key="FileChooserDialogImpl" timestamp="1589833972377">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
+    <state x="739" y="274" key="FileChooserDialogImpl/-1920.0.1536.832/0.0.1920.1040@0.0.1920.1040" timestamp="1589833972377" />
     <state x="739" y="274" key="FileChooserDialogImpl/0.0.1920.1040@0.0.1920.1040" timestamp="1585187261193" />
-    <state width="1899" height="282" key="GridCell.Tab.0.bottom" timestamp="1586994388982">
+    <state width="1899" height="282" key="GridCell.Tab.0.bottom" timestamp="1589846638549">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
+    <state width="1899" height="282" key="GridCell.Tab.0.bottom/-1920.0.1536.832/0.0.1920.1040@0.0.1920.1040" timestamp="1589846638549" />
     <state width="1899" height="282" key="GridCell.Tab.0.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1586994388982" />
-    <state width="1899" height="282" key="GridCell.Tab.0.center" timestamp="1586994388982">
+    <state width="1899" height="282" key="GridCell.Tab.0.center" timestamp="1589846638549">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
+    <state width="1899" height="282" key="GridCell.Tab.0.center/-1920.0.1536.832/0.0.1920.1040@0.0.1920.1040" timestamp="1589846638549" />
     <state width="1899" height="282" key="GridCell.Tab.0.center/0.0.1920.1040@0.0.1920.1040" timestamp="1586994388982" />
-    <state width="1899" height="282" key="GridCell.Tab.0.left" timestamp="1586994388982">
+    <state width="1899" height="282" key="GridCell.Tab.0.left" timestamp="1589846638549">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
+    <state width="1899" height="282" key="GridCell.Tab.0.left/-1920.0.1536.832/0.0.1920.1040@0.0.1920.1040" timestamp="1589846638549" />
     <state width="1899" height="282" key="GridCell.Tab.0.left/0.0.1920.1040@0.0.1920.1040" timestamp="1586994388982" />
-    <state width="1899" height="282" key="GridCell.Tab.0.right" timestamp="1586994388982">
+    <state width="1899" height="282" key="GridCell.Tab.0.right" timestamp="1589846638549">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
+    <state width="1899" height="282" key="GridCell.Tab.0.right/-1920.0.1536.832/0.0.1920.1040@0.0.1920.1040" timestamp="1589846638549" />
     <state width="1899" height="282" key="GridCell.Tab.0.right/0.0.1920.1040@0.0.1920.1040" timestamp="1586994388982" />
-    <state x="228" y="0" key="SettingsEditor" timestamp="1588026340942">
+    <state x="228" y="0" key="SettingsEditor" timestamp="1589835446084">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
+    <state x="228" y="0" key="SettingsEditor/-1920.0.1536.832/0.0.1920.1040@0.0.1920.1040" timestamp="1589835446084" />
     <state x="228" y="0" key="SettingsEditor/0.0.1920.1040@0.0.1920.1040" timestamp="1588026340942" />
   </component>
 </project>
