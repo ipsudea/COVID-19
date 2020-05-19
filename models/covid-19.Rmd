@@ -58,7 +58,7 @@ national_cases <- cumulative %>%
   geom_point(size = 0.6) +
   geom_vline(xintercept = as.numeric(ymd("2020-03-24")), linetype = 4, color = "black") +
   scale_x_date(date_breaks = "10 days", date_labels = "%d %b") +
-  scale_y_continuous(breaks = seq(from = 0, to = 6000, by = 200)) +
+  scale_y_continuous(breaks = seq(from = 0, to = 5000, by = 200)) +
   stat_peaks(aes(color = departamento, 
                  label = paste(..y.label..)), 
              geom = "text_repel",
@@ -90,7 +90,7 @@ dpts_high <- national_cases +
   gghighlight(departamento == "Antioquia")
 ggsave(plot = dpts_high, "../plots/dpts_highlight_25-04-2020.png", width = 11, height = 6)  
 #Static
-ggsave(plot = national_cases, "../plots/dpts_18-05-2020.png", width = 8, height = 6)
+ggsave(plot = national_cases, "../plots/dpts_12-05-2020.png", width = 8, height = 6)
 ```
 
 
@@ -101,7 +101,8 @@ antioquia <- cumulative %>%
   filter(departamento == "Antioquia",
          acum > 200)
 
-colors <- c("acum" = "black", "infectionsS1" = "darkblue", "infectionsS2" ="darkorange", "infectionsS3" = "darkred", "infectionsS4" = "aquamarine4", "n" = "grey")
+colors <- c("acum" = "black", "infectionsS1" = "darkblue", "infectionsS2" ="darkorange", "infectionsS3" = "darkred", "n" = "grey",
+            "infectionsS4" = "darkgreen")
 
 tidy_antioquia <- antioquia_model %>%
   mutate(fecha_diagnostico = seq.Date(from = ymd("2020-04-07"), to = ymd("2021-04-07"), by = 1)) %>% 
@@ -118,17 +119,18 @@ models_plot <- tidy_antioquia %>%
                                                  "Escenario pesimista (30%)", 
                                                  "Escenario intermedio (45%)",
                                                  "Escenario optimista (60%)",
-                                                 "Escenario ajustado (56%)")) +
-  facet_zoom(xlim = c(ymd_hms("2020-04-15 00:00:00"), ymd_hms("2020-05-30 00:00:00")),
-             ylim = c(0, 1000), zoom.size = 1.2) +
+                                                 "Escenario ajustado (62%)")) +
+  facet_zoom(xlim = c(ymd_hms("2020-04-08 00:00:00"), ymd_hms("2020-05-20 00:00:00")),
+             ylim = c(0, 700), zoom.size = 0.7) +
   stat_peaks(aes(color = name, 
                  label = paste(..y.label.., ..x.label..)), 
              geom = "text", 
              vjust = -0.5,
-             hjust = 0.5,
+             hjust = 0.2,
              span = NULL,
              x.label.fmt = "%d-%m(%b)",
-             y.label.fmt = "%.0f infectados") +
+             y.label.fmt = "%.0f pacientes",
+             size = 3) +
   theme(axis.text.y = element_text(size = 14),
         title = element_text(size = 16, face = "bold", family = "sans"),
         legend.position = "bottom",
@@ -137,7 +139,7 @@ models_plot <- tidy_antioquia %>%
         plot.subtitle = element_text(size = 10)
         ) +
   labs(title = "COVID-19: Antioquia - Modelo SIR - Población susceptible: 6.355.502",
-       subtitle = "Fuente casos confirmados: Instituto Nacional de Salud (17/05/2020)",
+       subtitle = "Fuente casos confirmados: Instituto Nacional de Salud (15/05/2020) - Fecha del modelo ajustado: (15/05/2020)",
        x = NULL,
        y = NULL,
        color = NULL) 
@@ -150,7 +152,7 @@ gganimate::anim_save("models_plot.gif")
 
 
 #Static
-ggsave(plot = models_plot, "../plots/model_comparison_18-05-2020.png", width = 13, height = 6)
+ggsave(plot = models_plot, "../plots/model_comparison_15-05-2020.png", width = 13, height = 6)
 ```
 
 ## Example of why time series should not be used
@@ -237,8 +239,7 @@ hosp_plot <- tidy_hosp %>%
              hjust = -0.04,
              span = NULL,
              x.label.fmt = "%d-%m(%b)",
-             y.label.fmt = "%.0f pacientes",
-             size = 3) +
+             y.label.fmt = "%.0f pacientes") +
   scale_color_manual(values = hosp_colors, labels = c("Casos confirmados", 
                                                  "Escenario pesimista (30%)", 
                                                  "Escenario intermedio (45%)",
@@ -248,11 +249,11 @@ hosp_plot <- tidy_hosp %>%
   facet_zoom(xlim = c(ymd_hms("2020-04-05 00:00:00"), ymd_hms("2020-05-15 00:00:00")),
              ylim = c(0, 50), zoom.size = 1.2) +
   theme(axis.text.y = element_text(size = 12),
-        title = element_text(size = 8, face = "bold", family = "sans"),
+        title = element_text(size = 14, face = "bold", family = "sans"),
         legend.position = "bottom",
-        legend.text = element_text(margin = margin(r = 2, unit = "pt"), size = 7),
+        legend.text = element_text(margin = margin(r = 40, unit = "pt")),
         plot.title = element_text(hjust = 0.5),
-        plot.subtitle = element_text(size = 6)
+        plot.subtitle = element_text(size = 10)
         ) +
   labs(title = "COVID-19: Población hospitalizada - EPS priorizadas - Modelo SIR - Población susceptible: 767.155",
        subtitle = "Fuente casos confirmados: Puesto de mando unificado - IPS Universitaria (29/04/2020)",
@@ -261,7 +262,7 @@ hosp_plot <- tidy_hosp %>%
        color = NULL,
        alpha = NULL) 
 #Static
-ggsave(plot = hosp_plot, "../plots/tableau_new_sc_hosp_comparison_13-05-2020.png", width = 8, height = 4)
+ggsave(plot = hosp_plot, "../plots/new_sc_hosp_comparison_13-05-2020.png", width = 12, height = 7)
 
 # Data aggregation
 hosp_summarized <- hosp_mixed %>% 
@@ -306,8 +307,7 @@ uce_plot <- tidy_uce %>%
              hjust = -0.04,
              span = NULL,
              x.label.fmt = "%d-%m(%b)",
-             y.label.fmt = "%.0f pacientes",
-             size = 3) +
+             y.label.fmt = "%.0f pacientes") +
   scale_color_manual(values = uce_colors, labels = c("Casos confirmados", 
                                                  "Escenario pesimista (30%)", 
                                                  "Escenario intermedio (45%)",
@@ -316,12 +316,12 @@ uce_plot <- tidy_uce %>%
   scale_alpha_manual(values = uce_alpha, labels = NULL, guide = "none")  +
   facet_zoom(xlim = c(ymd_hms("2020-04-05 00:00:00"), ymd_hms("2020-05-15 00:00:00")),
              ylim = c(0, 50), zoom.size = 1.2) +
-  theme(axis.text.y = element_text(size = 6),
-        title = element_text(size = 8, face = "bold", family = "sans"),
+  theme(axis.text.y = element_text(size = 12),
+        title = element_text(size = 14, face = "bold", family = "sans"),
         legend.position = "bottom",
-        legend.text = element_text(margin = margin(r = 2, unit = "pt"), size = 7),
+        legend.text = element_text(margin = margin(r = 40, unit = "pt")),
         plot.title = element_text(hjust = 0.5),
-        plot.subtitle = element_text(size = 6)
+        plot.subtitle = element_text(size = 10)
         ) +
   labs(title = "COVID-19: Población en UCE - EPS priorizadas - Modelo SIR - Población susceptible: 767.155",
        subtitle = "Fuente casos confirmados: Puesto de mando unificado IPS Universitaria (29/04/2020)",
@@ -331,7 +331,7 @@ uce_plot <- tidy_uce %>%
        alpha = NULL)
 
 #Static
-ggsave(plot = uce_plot, "../plots/tableau_new_sc_uce_plot_13-05-2020.png", width = 8, height = 4)
+ggsave(plot = uce_plot, "../plots/new_sc_uce_plot_13-05-2020.png", width = 12, height = 7)
 ```
 
 
@@ -377,12 +377,12 @@ uci_plot <- tidy_uci %>%
   scale_alpha_manual(values = uci_alpha, labels = NULL, guide = "none")  +
   facet_zoom(xlim = c(ymd_hms("2020-04-05 00:00:00"), ymd_hms("2020-05-15 00:00:00")),
              ylim = c(0, 50), zoom.size = 1.2) +
-  theme(axis.text.y = element_text(size = 6),
-        title = element_text(size = 8, face = "bold", family = "sans"),
+  theme(axis.text.y = element_text(size = 12),
+        title = element_text(size = 14, face = "bold", family = "sans"),
         legend.position = "bottom",
-        legend.text = element_text(margin = margin(r = 2, unit = "pt"), size = 7),
+        legend.text = element_text(margin = margin(r = 40, unit = "pt")),
         plot.title = element_text(hjust = 0.5),
-        plot.subtitle = element_text(size = 6)
+        plot.subtitle = element_text(size = 10)
         ) +
   labs(title = "COVID-19: Población en UCI - Modelo SIR - Población susceptible: 767.155",
        subtitle = "Fuente casos confirmados: Puesto de mando unificado - IPS Universitaria (29/04/2020)",
@@ -392,7 +392,7 @@ uci_plot <- tidy_uci %>%
        alpha = NULL)
 
 #Static
-ggsave(plot = uci_plot, "../plots/tableau_new_sc_uci_plot_13-05-2020.png", width = 8, height = 4)
+ggsave(plot = uci_plot, "../plots/new_sc_uci_plot_13-05-2020.png", width = 12, height = 7)
 ```
 
 ### Análisis de pacientes negativos vs positivos
@@ -432,40 +432,3 @@ proporcion %>%
 
 ```
          
-         
-## Doubling time análisis
-
-```{r}
-doubling_data <- read_csv("../src/doubling-time-of-covid-cases.csv") %>% 
-  mutate(Date = mdy(Date)) %>% 
-  dplyr::rename("doubling_3days" =`Doubling days of total confirmed cases (3 day period)`)
-
-doubling_col <- doubling_data %>% 
-  filter(Entity == "Colombia") %>% 
-  mutate(cuarentena = case_when(Date <= ymd("2020-04-13") ~ "sin cuarentena / tomando efectividad",
-                                Date >= ymd("2020-05-11") ~ "algunos sectores activados",
-                                TRUE ~ "con cuarentena"))
-
-doubling_plot <- doubling_col %>% 
-  ggplot(aes(Date, doubling_3days, color = factor(cuarentena))) +
-  geom_line() +
-  geom_point() +
-  geom_vline(xintercept = ymd("2020-03-24")) +
-  labs(title = "COVID-19 Datos reales del doubling time en Colombia - Análisis IPS Universitaria",
-       subtitle = "Fuente: INS a través de JHU, actualizado (18/05/2020)",
-       y = "Doubling time de casos confirmados (periodo 3 días)") +
-    theme(axis.text.y = element_text(size = 6),
-        title = element_text(size = 8, face = "bold", family = "sans"),
-        legend.position = "bottom",
-        legend.text = element_text(margin = margin(r = 2, unit = "pt"), size = 7),
-        plot.title = element_text(hjust = 0.5),
-        plot.subtitle = element_text(size = 6)
-        )
-
-ggsave(plot = doubling_plot, "../plots/doubling_plot_18-05-2020.png", width = 8, height = 4)
-
-doubling_col %>% 
-  filter(Date < ymd("2020-04-13")) %>% 
-  summarize(mean(doubling_3days))
-```
-
