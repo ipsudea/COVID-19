@@ -431,4 +431,39 @@ proporcion %>%
   summarize_if(is.numeric, ~mean(.))
 
 ```
-         
+   
+## Doubling time análisis
+
+```{r}
+doubling_data <- read_csv("../src/doubling-time-of-covid-cases.csv") %>% 
+  mutate(Date = mdy(Date)) %>% 
+  dplyr::rename("doubling_3days" =`Doubling days of total confirmed cases (3 day period)`)
+
+doubling_col <- doubling_data %>% 
+  filter(Entity == "Colombia") %>% 
+  mutate(cuarentena = case_when(Date <= ymd("2020-04-13") ~ "sin cuarentena / tomando efectividad",
+                                Date >= ymd("2020-05-11") ~ "algunos sectores activados",
+                                TRUE ~ "con cuarentena"))
+
+doubling_plot <- doubling_col %>% 
+  ggplot(aes(Date, doubling_3days, color = factor(cuarentena))) +
+  geom_line() +
+  geom_point() +
+  geom_vline(xintercept = ymd("2020-03-24")) +
+  labs(title = "COVID-19 Datos reales del doubling time en Colombia - Análisis IPS Universitaria",
+       subtitle = "Fuente: INS a través de JHU, actualizado (18/05/2020)",
+       y = "Doubling time de casos confirmados (periodo 3 días)") +
+    theme(axis.text.y = element_text(size = 6),
+        title = element_text(size = 8, face = "bold", family = "sans"),
+        legend.position = "bottom",
+        legend.text = element_text(margin = margin(r = 2, unit = "pt"), size = 7),
+        plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(size = 6)
+        )
+
+ggsave(plot = doubling_plot, "../plots/doubling_plot_18-05-2020.png", width = 8, height = 4)
+
+doubling_col %>% 
+  filter(Date < ymd("2020-04-13")) %>% 
+  summarize(mean(doubling_3days))
+```      
