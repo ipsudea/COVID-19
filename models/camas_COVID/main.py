@@ -127,9 +127,9 @@ scenario1 = Scenario(name = "Escenario 1 - Medidas de aislamiento efectivas en 3
                     hosp_rate = 2.5,
                     icu_rate = 0.75,
                     vent_rate = 0.65,
-                    hosp_los = 10,
-                    icu_los = 14,
-                    vent_los = 14,
+                    hosp_los = 7,
+                    icu_los = 9,
+                    vent_los = 10,
                     )
 
 scenario2 = Scenario(name = "Escenario 2 - Medidas de aislamiento efectivas en 45%",
@@ -144,9 +144,9 @@ scenario2 = Scenario(name = "Escenario 2 - Medidas de aislamiento efectivas en 4
                     hosp_rate = 2.5,
                     icu_rate = 0.75,
                     vent_rate = 0.65,
-                    hosp_los = 10,
-                    icu_los = 14,
-                    vent_los = 14,
+                    hosp_los = 7,
+                    icu_los = 9,
+                    vent_los = 10,
                     )
 
 scenario3 = Scenario(name = "Escenario 3 - Medidas de aislamiento efectivas en 60%",
@@ -161,26 +161,26 @@ scenario3 = Scenario(name = "Escenario 3 - Medidas de aislamiento efectivas en 6
                     hosp_rate = 2.5,
                     icu_rate = 0.75,
                     vent_rate = 0.65,
-                    hosp_los = 10,
-                    icu_los = 14,
-                    vent_los = 14,
+                    hosp_los = 7,
+                    icu_los = 9,
+                    vent_los = 10,
                     )
 
-scenario4 = Scenario(name = "Escenario 4 - Medidas de aislamiento efectivas en 56%",
+scenario4 = Scenario(name = "Escenario 4 - Medidas de aislamiento efectivas en 43%",
                     S = 767555,
                     market_share = 80,
                     initial_infections = 52,
                     n_days = 365,
                     current_hosp = 2,
                     doubling_time = 5,
-                    relative_contact_rate = 56,
+                    relative_contact_rate = 43,
                     recovery_days = 14.0,
                     hosp_rate = 2.5,
                     icu_rate = 0.75,
                     vent_rate = 0.65,
-                    hosp_los = 10,
-                    icu_los = 14,
-                    vent_los = 14,
+                    hosp_los = 7,
+                    icu_los = 9,
+                    vent_los = 10,
                     )
 
 list_scenarios = [scenario1, scenario2, scenario3, scenario4]

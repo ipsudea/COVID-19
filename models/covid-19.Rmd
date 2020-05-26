@@ -182,7 +182,7 @@ ts_data %>%
 # This function joins the data with the real information, needs to be modified once we get UCI and UCE
 get_mixed <- function(raw_data, ips_data) {
   raw_data %>%
-  mutate(date = seq.Date(from = ymd("2020-03-25"), to = ymd("2021-03-11"), by = 1)) %>% 
+  mutate(date = seq.Date(from = ymd("2020-03-25"), to = ymd("2021-03-15"), by = 1)) %>% 
   left_join(ips_data, by = c("date" = "Fecha consulta")) %>%
   mutate(n = replace_na(n,0),
          acum = cumsum(n)) %>% 
@@ -197,7 +197,7 @@ get_mixed <- function(raw_data, ips_data) {
 ### Hospitalization
 
 ```{r}
-raw_ips <- read_excel("../src/BASE DE DATOS COVID-19 29-04-20.xlsx", skip = 6) %>% 
+raw_ips <- read_excel("../src/BASE DE DATOS COVID-19 (updated).xlsx") %>% 
   mutate(tipo_cama = case_when(str_detect(Servicio, "MI") ~ "hospitalizacion",
                                str_detect(Servicio, "UCI") ~ "UCI",
                                str_detect(Servicio, "PISO") ~ "hospitalizacion",
@@ -206,13 +206,14 @@ raw_ips <- read_excel("../src/BASE DE DATOS COVID-19 29-04-20.xlsx", skip = 6) %
                                str_detect(Servicio, "OBSERVACION") ~ "hospitalizacion",
                                TRUE ~ "ambulatorio"))
 hosp_data <- read_csv("../src/hosp_data.csv")
-new_hosp_data <- read_csv("../src/new_hosp_data.csv")
+new_hosp_data <- read_csv("../src/hosp_data_v2_newlos.csv")
 
 
 ips_hosp <- raw_ips %>%
-  filter(Resultado...63 == "Positivo",
-         tipo_cama == "hospitalizacion") %>% 
-  mutate(`Fecha consulta` = as_date(`Fecha consulta`)) %>% 
+  filter(Resultado...69 == "Positivo",
+         tipo_cama == "hospitalizacion") %>%
+  mutate(`Fecha consulta` = as.numeric(`Fecha consulta`),
+         `Fecha consulta` = as.Date((`Fecha consulta`), origin = "1899-12-30")) %>% 
   group_by(`Fecha consulta`, ERP) %>%
   count() %>%
   ungroup()
@@ -223,6 +224,8 @@ hosp_mixed <- get_mixed(new_hosp_data, ips_hosp)
 tidy_hosp <- hosp_mixed %>% 
   pivot_longer(cols = c("hospS1", "hospS2", "hospS3", "hospS4", "acum"))
 
+# write Tidy Hosp
+write_csv2(tidy_hosp, "../src/tidy_hosp_v3.csv")
 
 hosp_colors <- c("acum" = "black", "hospS1" = "darkblue", "hospS2" = "darkorange", "hospS3" = "darkred", "hospS4" = "aquamarine4")
 hosp_alpha <- c("acum" = 1, "hospS1" = 0.4, "hospS2" = 0.4, "hospS3" = 0.4, "hospS4" = 1)
@@ -244,7 +247,7 @@ hosp_plot <- tidy_hosp %>%
                                                  "Escenario pesimista (30%)", 
                                                  "Escenario intermedio (45%)",
                                                  "Escenario optimista (60%)",
-                                                 "Escenario ajustado (52%)")) +
+                                                 "Escenario ajustado (43%)")) +
   scale_alpha_manual(values = hosp_alpha, labels = NULL, guide = "none")  +
   facet_zoom(xlim = c(ymd_hms("2020-04-05 00:00:00"), ymd_hms("2020-05-15 00:00:00")),
              ylim = c(0, 50), zoom.size = 1.2) +
@@ -256,13 +259,13 @@ hosp_plot <- tidy_hosp %>%
         plot.subtitle = element_text(size = 10)
         ) +
   labs(title = "COVID-19: Población hospitalizada - EPS priorizadas - Modelo SIR - Población susceptible: 767.155",
-       subtitle = "Fuente casos confirmados: Puesto de mando unificado - IPS Universitaria (29/04/2020)",
+       subtitle = "Fuente casos confirmados: Puesto de mando unificado - IPS Universitaria (15/05/2020) - Estancia corregida, Doubling time actualizado",
        x = NULL,
        y = NULL,
        color = NULL,
        alpha = NULL) 
 #Static
-ggsave(plot = hosp_plot, "../plots/new_sc_hosp_comparison_13-05-2020.png", width = 12, height = 7)
+ggsave(plot = hosp_plot, "../plots/new_sc_hosp_comparison_15-05-2020.png", width = 12, height = 7)
 
 # Data aggregation
 hosp_summarized <- hosp_mixed %>% 
@@ -278,19 +281,22 @@ writexl::write_xlsx(hosp_summarized, "resultados_modelos_hosp_consolidado_mensua
 
 ```{r}
 uce_data <- read_csv("../src/uce_data.csv")
-new_uce_data <- read_csv("../src/new_uce_data.csv")
-## Let's mix it with the hospitalization data for now
+new_uce_data <- read_csv("../src/uce_data_v2_newlos.csv")
 
 ips_uce <- raw_ips %>%
-  filter(Resultado...63 == "Positivo",
+  filter(Resultado...69 == "Positivo",
          tipo_cama == "UCE") %>% 
-  mutate(`Fecha consulta` = as_date(`Fecha consulta`)) %>% 
+  mutate(`Fecha consulta` = as.numeric(`Fecha consulta`),
+         `Fecha consulta` = as.Date((`Fecha consulta`), origin = "1899-12-30")) %>% 
   group_by(`Fecha consulta`, ERP) %>%
   count() %>%
   ungroup()
 
 tidy_uce <- get_mixed(new_uce_data, ips_uce) %>% 
   pivot_longer(cols = c(1:4, "acum"))
+
+# write Tidy_uce
+write_csv2(tidy_uce, "../src/tidy_uce_v3.csv")
 
 uce_colors <- c("acum" = "black", "icuS1" = "darkblue", "icuS2" = "darkorange", "icuS3" = "darkred", "icuS4" = "aquamarine4")
 uce_alpha <- c("acum" = 1, "icuS1" = 0.4, "icuS2" = 0.4, "icuS3" = 0.4, "icuS4" = 1)
@@ -339,18 +345,21 @@ ggsave(plot = uce_plot, "../plots/new_sc_uce_plot_13-05-2020.png", width = 12, h
 
 ```{r}
 uci_data <- read_csv("../src/uci_data.csv")
-new_uci_data <- read_csv("../src/new_uci_data.csv")
+new_uci_data <- read_csv("../src/uci_data_v2_newlos.csv")
 
 ips_uci <- raw_ips %>%
-  filter(Resultado...63 == "Positivo",
+  filter(Resultado...69 == "Positivo",
          tipo_cama == "UCI") %>% 
-  mutate(`Fecha consulta` = as_date(`Fecha consulta`)) %>% 
+  mutate(`Fecha consulta` = as.numeric(`Fecha consulta`),
+         `Fecha consulta` = as.Date((`Fecha consulta`), origin = "1899-12-30")) %>% 
   group_by(`Fecha consulta`, ERP) %>%
   count() %>%
   ungroup()
 
 tidy_uci <- get_mixed(new_uci_data , ips_uci) %>%  
   pivot_longer(cols = c(1:4, "acum"))
+# write Tidy uci
+write_csv2(tidy_uci, "../src/tidy_uci_v3.csv")
 
 uci_colors <- c("acum" = "black", "ventS1" = "darkblue", "ventS2" = "darkorange", "ventS3" = "darkred", "ventS4" = "aquamarine4")
 uci_alpha <- c("acum" = 1, "ventS1" = 0.4, "ventS2" = 0.4, "ventS3" = 0.4, "ventS4" = 1)
